@@ -12,7 +12,11 @@
 #include "world_system.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
-
+struct Mode
+{
+	bool basic = true;
+	bool advance = false;
+};
 // Entry point
 int main()
 {
