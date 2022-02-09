@@ -20,6 +20,10 @@ const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 const size_t VORTEX_DELAY_MS = 3000 * 3;
 const size_t STONE_DELAY_MS = 2000 * 3;
+struct Mode 
+{
+	bool advance = false;
+} mode;
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -134,6 +138,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	
 	// Updating window title with points
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
@@ -141,7 +146,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -149,10 +154,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
+	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i) {
+		Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
+			if (!registry.players.has(motions_registry.entities[i])) // don't remove the player
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
@@ -163,7 +168,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Reset timer
 		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
 		// Create eagle with random initial position
-        createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), -100.f));
+		createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), -100.f));
 	}
 
 	// Spawning new bugs
@@ -173,31 +178,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Reset timer
 		next_bug_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
 		// Create bug with random initial position
-		createBug(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 
+		createBug(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f),
 			-100.f)); // 2nd param sets how far offscreen
 	}
 
-	// Spawning new vortices
-	next_vortex_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.blowers.components.size() <= MAX_VORTEX && next_vortex_spawn < 0.f) {
-		// Reset timer
-		next_vortex_spawn = (VORTEX_DELAY_MS / 2) + uniform_dist(rng) * (VORTEX_DELAY_MS / 2);
-		// Create vortex with random initial position
-		//int indicator = rand() % 2;
-		//createVortex(renderer, vec2(indicator * window_width_px,
-		//	50.f + uniform_dist(rng) * (window_height_px - 100.f)), indicator);
-		createVortex(renderer, vec2(window_width_px, 50.f + uniform_dist(rng) * (window_height_px - 100.f)));
-		
-	}
+	if (mode.advance) {
+		// Spawning new vortices
+		next_vortex_spawn -= elapsed_ms_since_last_update * current_speed;
+		if (registry.blowers.components.size() <= MAX_VORTEX && next_vortex_spawn < 0.f) {
+			// Reset timer
+			next_vortex_spawn = (VORTEX_DELAY_MS / 2) + uniform_dist(rng) * (VORTEX_DELAY_MS / 2);
+			// Create vortex with random initial position
+			//int indicator = rand() % 2;
+			//createVortex(renderer, vec2(indicator * window_width_px,
+			//	50.f + uniform_dist(rng) * (window_height_px - 100.f)), indicator);
+			createVortex(renderer, vec2(window_width_px, 50.f + uniform_dist(rng) * (window_height_px - 100.f)));
 
-	next_stone_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.deadlys.components.size() <= MAX_STONE && next_stone_spawn < 0.f) {
-		// Reset timer
-		next_stone_spawn = (STONE_DELAY_MS / 2) + uniform_dist(rng) * (STONE_DELAY_MS / 2);
-		// Create stone with random initial position and scale
-		createStone(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f),
-			-100.f), uniform_dist(rng)); // 2nd param sets how far offscreen
+		}
 
+		next_stone_spawn -= elapsed_ms_since_last_update * current_speed;
+		if (registry.deadlys.components.size() <= MAX_STONE && next_stone_spawn < 0.f) {
+			// Reset timer
+			next_stone_spawn = (STONE_DELAY_MS / 2) + uniform_dist(rng) * (STONE_DELAY_MS / 2);
+			// Create stone with random initial position and scale
+			createStone(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f),
+				-100.f), uniform_dist(rng)); // 2nd param sets how far offscreen
+
+		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -207,7 +214,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Processing the chicken state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	ScreenState& screen = registry.screenStates.components[0];
 
 	// Processing movement with movement flags
 	Motion& motion = registry.motions.get(player_chicken);
@@ -238,20 +245,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 
 
-    float min_counter_ms = 3000.f;
+	float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-            restart_game();
+			restart_game();
 			return true;
 		}
 	}
@@ -271,25 +278,27 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			light_up.light_up = 0;
 		}
 	}
+	
+	if (mode.advance) {
+		for (Entity entity : registry.blowUpTimers.entities) {
+			// progress timer
+			BlowUpTimer& counter = registry.blowUpTimers.get(entity);
 
-	for (Entity entity : registry.blowUpTimers.entities) {
-		// progress timer
-		BlowUpTimer& counter = registry.blowUpTimers.get(entity);
-		
-		counter.counter_ms -= elapsed_ms_since_last_update;
+			counter.counter_ms -= elapsed_ms_since_last_update;
 
-		if (counter.counter_ms < 0) {
-			if (registry.motionFlags.has(entity)) {
-				MotionFlag& motion_flag = registry.motionFlags.get(entity);
-				motion_flag.dragged = false;
+			if (counter.counter_ms < 0) {
+				if (registry.motionFlags.has(entity)) {
+					MotionFlag& motion_flag = registry.motionFlags.get(entity);
+					motion_flag.dragged = false;
+				}
+				registry.blowUpTimers.remove(entity);
+				registry.blowers.remove(entity);
 			}
-			registry.blowUpTimers.remove(entity);
-			registry.blowers.remove(entity);
 		}
 	}
-
 	return true;
 }
+
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
@@ -375,20 +384,21 @@ void WorldSystem::handle_collisions() {
 				}
 			}
 		}
-
-		if (registry.blowables.has(entity)) {
-			// Checking Blowable - Blower collisions
-			if (registry.blowers.has(entity_other)) {
-				if (!registry.blowUpTimers.has(entity)) {
-					registry.blowUpTimers.emplace(entity);
-					Motion& motion = registry.motions.get(entity);
-					Motion& motion_other = registry.motions.get(entity_other);
-					if (registry.motionFlags.has(entity)) {
-						MotionFlag& motion_flag = registry.motionFlags.get(entity);
-						motion_flag.dragged = true;
+		if (mode.advance) {
+			if (registry.blowables.has(entity)) {
+				// Checking Blowable - Blower collisions
+				if (registry.blowers.has(entity_other)) {
+					if (!registry.blowUpTimers.has(entity)) {
+						registry.blowUpTimers.emplace(entity);
+						Motion& motion = registry.motions.get(entity);
+						Motion& motion_other = registry.motions.get(entity_other);
+						if (registry.motionFlags.has(entity)) {
+							MotionFlag& motion_flag = registry.motionFlags.get(entity);
+							motion_flag.dragged = true;
+						}
+						vec2 diff = motion.position - motion_other.position;
+						motion.velocity = -1.5f * diff;
 					}
-					vec2 diff = motion.position - motion_other.position;
-					motion.velocity = - 1.5f * diff;
 				}
 			}
 		}
@@ -417,6 +427,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_B) {
+		mode.advance = false;
+		printf("Switch to Basic Mode\n");
+		int w, h;
+		glfwGetWindowSize(window, &w, &h);
+
+		restart_game();
+	}
+
+	else if (action == GLFW_RELEASE && key == GLFW_KEY_A) {
+		mode.advance = true;
+		printf("Switch to Advance Mode\n");
+		int w, h;
+		glfwGetWindowSize(window, &w, &h);
+
+		restart_game();
 	}
 
 	// Debugging
