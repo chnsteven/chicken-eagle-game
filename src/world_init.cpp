@@ -8,7 +8,6 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::CHICKEN);
 	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Setting initial motion values
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
@@ -31,7 +30,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createBug(RenderSystem* renderer, vec2 position)
+Entity createBug(RenderSystem* renderer, vec2 position, float random_speed)
 {
 	// Reserve en entity
 	auto entity = Entity();
@@ -43,7 +42,7 @@ Entity createBug(RenderSystem* renderer, vec2 position)
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 50 };
+	motion.velocity = { random_speed, 50.f };
 	motion.position = position;
 
 	// Setting initial values, scale is negative to make it face the opposite way

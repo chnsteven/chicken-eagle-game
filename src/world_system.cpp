@@ -16,8 +16,8 @@ const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
 const size_t MAX_VORTEX = 1;
 const size_t MAX_STONE = 10;
-const size_t EAGLE_DELAY_MS = 2000 * 3;
-const size_t BUG_DELAY_MS = 5000 * 3;
+const size_t EAGLE_DELAY_MS = 5000 * 3;
+const size_t BUG_DELAY_MS = 8000 * 3;
 const size_t VORTEX_DELAY_MS = 3000 * 3;
 const size_t STONE_DELAY_MS = 2000 * 3;
 struct Mode 
@@ -174,12 +174,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Spawning new bugs
 	next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-		// !!!  TODO A1: Create new bug with createBug({0,0}), as for the Eagles above
 		// Reset timer
 		next_bug_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
 		// Create bug with random initial position
 		createBug(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f),
-			-100.f)); // 2nd param sets how far offscreen
+			-100.f), uniform_dist(rng) * 50.f + 50.f); // random speed 50.f - 100.f
 	}
 
 	if (mode.advance) {

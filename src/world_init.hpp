@@ -18,7 +18,7 @@ const float STONE_BB_HEIGHT = 0.6f * 100.f;
 // the player
 Entity createChicken(RenderSystem* renderer, vec2 pos);
 // the prey
-Entity createBug(RenderSystem* renderer, vec2 position);
+Entity createBug(RenderSystem* renderer, vec2 position, float random_speed);
 // the enemy
 Entity createEagle(RenderSystem* renderer, vec2 position);
 // a red line for debugging purposes

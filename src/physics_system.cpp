@@ -33,12 +33,16 @@ void PhysicsSystem::step(float elapsed_ms)
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 		motion.position += step_seconds * motion.velocity;
-		//(void)elapsed_ms; // placeholder to silence unused warning until implemented
+		
+		// A2: handle collisions with left/right walls, objective: to bounce off walls
+		if (motion.position.x - motion.scale.x / 2.f >= window_width_px ||
+			motion.position.x + motion.scale.x / 2.f <= 0.f) {
+			motion.velocity = vec2(-motion.velocity.x, motion.velocity.y);
+		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
