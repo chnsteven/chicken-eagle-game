@@ -31,13 +31,13 @@ void PhysicsSystem::step(float elapsed_ms)
 	// Move bug based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
-	for(uint i = 0; i< motion_registry.size(); i++)
+	for (uint i = 0; i < motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
 		float step_seconds = elapsed_ms / 1000.f;
 		motion.position += step_seconds * motion.velocity;
-		
+
 		// A2: handle collisions with left/right walls, objective: to bounce off walls
 		if (motion.position.x - motion.scale.x / 2.f >= window_width_px ||
 			motion.position.x + motion.scale.x / 2.f <= 0.f) {
@@ -51,14 +51,14 @@ void PhysicsSystem::step(float elapsed_ms)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	// Check for collisions between all moving entities
-    ComponentContainer<Motion> &motion_container = registry.motions;
-	for(uint i = 0; i<motion_container.components.size(); i++)
+	ComponentContainer<Motion>& motion_container = registry.motions;
+	for (uint i = 0; i < motion_container.components.size(); i++)
 	{
 		Motion& motion_i = motion_container.components[i];
 		Entity entity_i = motion_container.entities[i];
-		
+
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-		for(uint j = i+1; j<motion_container.components.size(); j++)
+		for (uint j = i + 1; j < motion_container.components.size(); j++)
 		{
 			Motion& motion_j = motion_container.components[j];
 			if (collides(motion_i, motion_j))
@@ -76,6 +76,43 @@ void PhysicsSystem::step(float elapsed_ms)
 	// TODO A2: HANDLE CHICKEN - WALL collisions HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	Entity chicken = registry.players.entities[0]; // assumed there's only 1 chicken, if multiple, needs an alternative
+	Motion& chicken_motion = registry.motions.get(chicken);
+	vec2 chicken_position = chicken_motion.position;
+	vec2 chicken_bb = get_bounding_box(chicken_motion); // bounding box of chicken
+	Mesh* chicken_mesh = registry.meshPtrs.get(chicken);
+	// case 1: chicken at top left 
+	// case 2: chicken at top right
+	// case 3: chicken at bot left 
+	// case 4: chicken at bot right
+	// for efficiency, check if bounding box touches the boundaries first. If yes check vertices of the chicken
+	if (chicken_position.x - chicken_bb.x / 2.f <= 0.f) {
+		for (uint i = 0; i < chicken_mesh->vertices.size(); i++) {
+			if (chicken_mesh->vertices[i].position.x <= 0.f) {
+				chicken_motion.position = { chicken_bb.x / 2.f, chicken_position.y };
+			}
+		}
+	}
+	if (chicken_position.x + chicken_bb.x / 2.f >= window_width_px) {
+		for (uint i = 0; i < chicken_mesh->vertices.size(); i++) {
+			if (chicken_mesh->vertices[i].position.x >= window_width_px) {
+				chicken_motion.position = { window_width_px - chicken_bb.x / 2.f, chicken_position.y };
+				printf("vertex touches right wall\n");
+			}
+		}
+	}
+	if (chicken_position.y - chicken_bb.y / 2.f <= 0.f) {
+		for (uint i = 0; i < chicken_mesh->vertices.size(); i++) {
+			if (chicken_mesh->vertices[i].position.y <= 0.f)
+				chicken_motion.position = { chicken_position.x , chicken_bb.y / 2.f };
+		}
+	}
+	if (chicken_position.y + chicken_bb.y / 2.f >= window_height_px) {
+		for (uint i = 0; i < chicken_mesh->vertices.size(); i++) {
+			if (chicken_mesh->vertices[i].position.y >= window_height_px)
+				chicken_motion.position = { chicken_position.x , window_height_px - chicken_bb.y / 2.f };
+		}
+	}
 
 	// you may need the following quantities to compute wall positions
 	(float)window_width_px; (float)window_height_px;
