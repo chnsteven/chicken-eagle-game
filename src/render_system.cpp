@@ -15,8 +15,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	
 	transform.translate(motion.position);
 	transform.scale(motion.scale);
-	// !!! TODO A1: add rotation to the chain of transformations, mind the order
-	// of transformations
 	transform.rotate(motion.angle);
 
 	assert(registry.renderRequests.has(entity));
