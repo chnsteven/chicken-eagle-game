@@ -1,6 +1,21 @@
 // internal
 #include "ai_system.hpp"
 
+void AISystem::debug() {
+	for (uint i = 0; i < registry.eatables.size(); i++) {
+		Entity bug_i = registry.eatables.entities[i];
+		Motion& motion_i = registry.motions.get(bug_i);
+
+		// don't draw debugging visuals around debug lines
+		if (registry.players.has(bug_i))
+			continue;
+
+		vec2 direction_vector_x = { motion_i.velocity.x, 10.f };
+		vec2 direction_vector_y = { 10.f , motion_i.velocity.y };
+		Entity direction_vector_line_x = createLine(motion_i.position + vec2(motion_i.velocity.x / 2.f, 0.f), direction_vector_x);
+		Entity direction_vector_line_y = createLine(motion_i.position + vec2(0.f, motion_i.velocity.y / 2.f), direction_vector_y);
+	}
+}
 void AISystem::step(float elapsed_ms)
 {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -38,21 +53,7 @@ void AISystem::step(float elapsed_ms)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	if (debugging.in_debug_mode)
-	{
-		for (uint i = 0; i < registry.eatables.size(); i++) {
-			Entity bug_i = registry.eatables.entities[i];
-			Motion& motion_i = registry.motions.get(bug_i);
-
-			// don't draw debugging visuals around debug lines
-			if (registry.players.has(bug_i))
-				continue;
-
-			vec2 direction_vector_x = { motion_i.velocity.x, 10.f };
-			vec2 direction_vector_y = { 10.f , motion_i.velocity.y };
-			Entity direction_vector_line_x = createLine(motion_i.position + vec2(motion_i.velocity.x / 2.f, 0.f), direction_vector_x);
-			Entity direction_vector_line_y = createLine(motion_i.position + vec2(0.f, motion_i.velocity.y / 2.f), direction_vector_y);
-		}
-	}
+		debug();
 }
 
 bool AISystem::in_bug_range(Motion& bug, Motion& chicken) {

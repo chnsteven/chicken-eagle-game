@@ -17,6 +17,8 @@ struct Mode
 	bool basic = true;
 	bool advance = false;
 };
+
+float x;
 // Entry point
 int main()
 {
@@ -51,14 +53,21 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		world.step(elapsed_ms);
-		ai.step(elapsed_ms);
-		physics.step(elapsed_ms);
-		world.handle_collisions();
-
-		renderer.draw();
-
 		// TODO A2: you can implement the debug freeze here but other places are possible too.
+		if (debugging.in_debug_mode) {
+			ai.debug();
+			physics.debug();
+			renderer.draw();
+		}	
+		else {
+			world.step(elapsed_ms);
+			ai.step(elapsed_ms);
+			physics.step(elapsed_ms);
+			world.handle_collisions();
+
+			renderer.draw();
+		}
+			
 	}
 
 	return EXIT_SUCCESS;

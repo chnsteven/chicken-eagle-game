@@ -501,24 +501,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 	}
-
-	// naive implementation using GLFW_REPEAT
-	//if (action == GLFW_REPEAT && key == GLFW_KEY_LEFT) {
-	//	motion.position += scalar * vec2(-current_speed * cos(motion.angle),
-	//		current_speed * sin(motion.angle));
-	//}
-	//if (action == GLFW_REPEAT && key == GLFW_KEY_RIGHT) {
-	//	motion.position += scalar * vec2(current_speed * cos(motion.angle),
-	//		-current_speed * sin(motion.angle));
-	//}
-	//if (action == GLFW_REPEAT && key == GLFW_KEY_UP) {
-	//	motion.position += scalar * vec2(-current_speed * sin(motion.angle),
-	//		-current_speed * cos(motion.angle));
-	//}
-	//if (action == GLFW_REPEAT && key == GLFW_KEY_DOWN) {
-	//	motion.position += scalar * vec2(current_speed * sin(motion.angle),
-	//		current_speed * cos(motion.angle));
-	//}
 }
 
 
@@ -531,7 +513,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	Motion& motion = registry.motions.get(player_chicken);
 	MotionFlag& motion_flag = registry.motionFlags.get(player_chicken);
 
-	if (motion_flag.alive) {
+	if (motion_flag.alive && !debugging.in_debug_mode) {
 		motion.angle = atan2(mouse_position.y - motion.position.y,
 			motion.position.x - mouse_position.x);
 	}

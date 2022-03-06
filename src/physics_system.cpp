@@ -27,6 +27,49 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+void PhysicsSystem::debug() {
+	ComponentContainer<Motion>& motion_container = registry.motions;
+	Entity chicken = registry.players.entities[0]; // assumed there's only 1 chicken, if multiple, needs an alternative
+	Motion& chicken_motion = registry.motions.get(chicken);
+	Mesh* chicken_mesh = registry.meshPtrs.get(chicken);
+
+	Transform transform;
+	transform.translate(chicken_motion.position);
+	transform.rotate(-chicken_motion.angle);
+	transform.scale(chicken_motion.scale);
+
+	uint size_before_adding_new = (uint)motion_container.components.size();
+	for (uint i = 0; i < size_before_adding_new; i++)
+	{
+		Motion& motion_i = motion_container.components[i];
+		Entity entity_i = motion_container.entities[i];
+
+		// don't draw debugging visuals around debug lines
+		if (registry.debugComponents.has(entity_i))
+			continue;
+
+		// !!! TODO A2: implement debug bounding boxes instead of crosses
+		const vec2 bonding_box = get_bounding_box(motion_i);
+		float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
+		vec2 vertical_line = { motion_i.scale.x / 50.f, 2 * radius };
+		vec2 horizontal_line = { 2 * radius, motion_i.scale.y / 50.f };
+		Entity line1 = createLine(vec2(motion_i.position.x - radius, motion_i.position.y), vertical_line);
+		Entity line2 = createLine(vec2(motion_i.position.x + radius, motion_i.position.y), vertical_line);
+		Entity line3 = createLine(vec2(motion_i.position.x, motion_i.position.y - radius), horizontal_line);
+		Entity line4 = createLine(vec2(motion_i.position.x, motion_i.position.y + radius), horizontal_line);
+
+		if (registry.meshPtrs.has(entity_i)) {
+			//vec2 point = abs(motion_i.scale) / 25.f;
+			vec2 point = { 5.f, 5.f };
+			for (uint j = 0; j < chicken_mesh->vertices.size(); j++) {
+				vec3 chicken_mesh_position = transform.mat *
+					vec3(chicken_mesh->vertices[j].position.x, chicken_mesh->vertices[j].position.y, 1.f);
+				createLine(vec2(chicken_mesh_position), point);
+			}
+		}
+
+	}
+}
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move bug based on how much time has passed, this is to (partially) avoid
@@ -160,47 +203,7 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	// debugging of bounding boxes
 	if (debugging.in_debug_mode)
-	{
-		uint size_before_adding_new = (uint)motion_container.components.size();
-		for (uint i = 0; i < size_before_adding_new; i++)
-		{
-			Motion& motion_i = motion_container.components[i];
-			Entity entity_i = motion_container.entities[i];
-
-			// don't draw debugging visuals around debug lines
-			if (registry.debugComponents.has(entity_i))
-				continue;
-
-			// visualize the radius with two axis-aligned lines
-			//const vec2 bonding_box = get_bounding_box(motion_i);
-			//float radius = sqrt(dot(bonding_box/2.f, bonding_box/2.f));
-			//vec2 line_scale1 = { motion_i.scale.x / 10, 2*radius };
-			//vec2 line_scale2 = { 2*radius, motion_i.scale.x / 10};
-			//vec2 position = motion_i.position;
-			//Entity line1 = createLine(motion_i.position, line_scale1);
-			//Entity line2 = createLine(motion_i.position, line_scale2);
-
-			// !!! TODO A2: implement debug bounding boxes instead of crosses
-			const vec2 bonding_box = get_bounding_box(motion_i);
-			float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
-			vec2 vertical_line = { motion_i.scale.x / 50.f, 2 * radius };
-			vec2 horizontal_line = { 2 * radius, motion_i.scale.x / 50.f };
-			Entity line1 = createLine(vec2(motion_i.position.x - radius, motion_i.position.y), vertical_line);
-			Entity line2 = createLine(vec2(motion_i.position.x + radius, motion_i.position.y), vertical_line);
-			Entity line3 = createLine(vec2(motion_i.position.x, motion_i.position.y - radius), horizontal_line);
-			Entity line4 = createLine(vec2(motion_i.position.x, motion_i.position.y + radius), horizontal_line);
-
-			if (registry.meshPtrs.has(entity_i)) {
-				vec2 point = motion_i.scale / 25.f;
-				for (uint j = 0; j < chicken_mesh->vertices.size(); j++) {
-					vec3 chicken_mesh_position = transform.mat *
-						vec3(chicken_mesh->vertices[j].position.x, chicken_mesh->vertices[j].position.y, 1.f);
-					createLine(vec2(chicken_mesh_position), point);
-				}
-			}
-				
-		}
-	}
+		debug();
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG collisions HERE

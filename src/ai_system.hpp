@@ -15,6 +15,7 @@
 class AISystem
 {
 public:
+	void debug();
 	void step(float elapsed_ms);
 private:
 	// the diagonal distance of the window from one corner to another corner 
