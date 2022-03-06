@@ -16,8 +16,8 @@ const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
 const size_t MAX_VORTEX = 1;
 const size_t MAX_STONE = 10;
-const size_t EAGLE_DELAY_MS = 5000 * 3;
-const size_t BUG_DELAY_MS = 8000 * 3;
+const size_t EAGLE_DELAY_MS = 5000 * 6;
+const size_t BUG_DELAY_MS = 8000 * 6;
 const size_t VORTEX_DELAY_MS = 3000 * 3;
 const size_t STONE_DELAY_MS = 2000 * 3;
 struct Mode 
@@ -470,7 +470,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& motion = registry.motions.get(player_chicken);
 
 	if (motion_flag.alive && !motion_flag.dragged) {
-		if (action == GLFW_PRESS) {
+		if (action == GLFW_PRESS ) {
 			if (key == GLFW_KEY_LEFT) {
 				motion_flag.moving_left = true;
 			}

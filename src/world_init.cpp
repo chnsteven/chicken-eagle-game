@@ -16,8 +16,8 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.scale = mesh.original_size * 300.f;
 	motion.scale.y *= -1; // point front to the right
 
-	LightUp& light_up = registry.lightUps.emplace(entity);
-	MotionFlag& motion_flag = registry.motionFlags.emplace(entity);
+	registry.lightUps.emplace(entity);
+	registry.motionFlags.emplace(entity);
 	// Create and (empty) Chicken component to be able to refer to all eagles
 	registry.players.emplace(entity);
 	registry.blowables.emplace(entity);
@@ -34,10 +34,6 @@ Entity createBug(RenderSystem* renderer, vec2 position, float random_speed)
 {
 	// Reserve en entity
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the position, scale, and physics components
 	auto& motion = registry.motions.emplace(entity);
@@ -63,10 +59,6 @@ Entity createBug(RenderSystem* renderer, vec2 position, float random_speed)
 Entity createEagle(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
@@ -139,10 +131,6 @@ Entity createVortex(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -172,10 +160,6 @@ Entity createVortex(RenderSystem* renderer, vec2 position)
 Entity createStone(RenderSystem* renderer, vec2 position, float rand)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
