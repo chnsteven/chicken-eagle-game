@@ -178,7 +178,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		next_bug_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
 		// Create bug with random initial position
 		createBug(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f),
-			-100.f), uniform_dist(rng) * 50.f + 50.f); // random speed 50.f - 100.f
+			-100.f), uniform_dist(rng) * 100.f + 50.f); // random speed 50.f - 150.f
 	}
 
 	if (mode.advance) {

@@ -185,7 +185,6 @@ void PhysicsSystem::step(float elapsed_ms)
 			float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
 			vec2 vertical_line = { motion_i.scale.x / 50.f, 2 * radius };
 			vec2 horizontal_line = { 2 * radius, motion_i.scale.x / 50.f };
-			vec2 position = motion_i.position;
 			Entity line1 = createLine(vec2(motion_i.position.x - radius, motion_i.position.y), vertical_line);
 			Entity line2 = createLine(vec2(motion_i.position.x + radius, motion_i.position.y), vertical_line);
 			Entity line3 = createLine(vec2(motion_i.position.x, motion_i.position.y - radius), horizontal_line);

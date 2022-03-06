@@ -36,6 +36,23 @@ void AISystem::step(float elapsed_ms)
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
 	// You will want to use the createLine from world_init.hpp
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	if (debugging.in_debug_mode)
+	{
+		for (uint i = 0; i < registry.eatables.size(); i++) {
+			Entity bug_i = registry.eatables.entities[i];
+			Motion& motion_i = registry.motions.get(bug_i);
+
+			// don't draw debugging visuals around debug lines
+			if (registry.players.has(bug_i))
+				continue;
+
+			vec2 direction_vector_x = { motion_i.velocity.x, 10.f };
+			vec2 direction_vector_y = { 10.f , motion_i.velocity.y };
+			Entity direction_vector_line_x = createLine(motion_i.position + vec2(motion_i.velocity.x / 2.f, 0.f), direction_vector_x);
+			Entity direction_vector_line_y = createLine(motion_i.position + vec2(0.f, motion_i.velocity.y / 2.f), direction_vector_y);
+		}
+	}
 }
 
 bool AISystem::in_bug_range(Motion& bug, Motion& chicken) {
@@ -60,7 +77,7 @@ void AISystem::bugDT(Motion& bug, Motion& chicken) {
 
 	// bug is above chicken
 	if (bug.position.y < chicken.position.y) {
-		bug.velocity.y = -abs(velocity_before.y);
+		bug.velocity.y = - abs(velocity_before.y);
 	}
 	// bug is below chicken
 	else if (bug.position.y > chicken.position.y) {
