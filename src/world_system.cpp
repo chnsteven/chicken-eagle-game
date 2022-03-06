@@ -16,8 +16,8 @@ const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
 const size_t MAX_VORTEX = 1;
 const size_t MAX_STONE = 10;
-const size_t EAGLE_DELAY_MS = 5000 * 6;
-const size_t BUG_DELAY_MS = 8000 * 6;
+const size_t EAGLE_DELAY_MS = 5000 * 10;
+const size_t BUG_DELAY_MS = 1000 * 3;
 const size_t VORTEX_DELAY_MS = 3000 * 3;
 const size_t STONE_DELAY_MS = 2000 * 3;
 struct Mode 

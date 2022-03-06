@@ -40,10 +40,19 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position += step_seconds * motion.velocity;
 
 		// A2: handle collisions with left/right walls, objective: to bounce off walls
-		if (motion.position.x - motion.scale.x / 2.f > window_width_px ||
-			motion.position.x + motion.scale.x / 2.f < 0.f) {
-			motion.velocity = vec2(-motion.velocity.x, motion.velocity.y);
+		if (registry.eatables.has(entity)) {
+			if (motion.position.x + abs(motion.scale.x) / 2.f >= window_width_px) {
+				motion.position.x = window_width_px - abs(motion.scale.x) / 2.f;
+				motion.velocity.x = -motion.velocity.x;
+			}
+
+			if (motion.position.x - abs(motion.scale.x) / 2.f <= 0.f) {
+				motion.position.x = abs(motion.scale.x) / 2.f;
+				motion.velocity.x = -motion.velocity.x;
+			}
 		}
+	
+			
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -141,9 +150,6 @@ void PhysicsSystem::step(float elapsed_ms)
 			chicken_motion.position.y = chicken_position.y + abs(min_mesh_position_y);
 		else if (bot)
 			chicken_motion.position.y = chicken_position.y - abs(window_height_px - max_mesh_position_y);
-		else
-			printf("No mesh collides with wall"); // bounding box collides, meshes don't
-			
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -187,14 +193,10 @@ void PhysicsSystem::step(float elapsed_ms)
 
 			if (registry.meshPtrs.has(entity_i)) {
 				vec2 point = motion_i.scale / 25.f;
-				/*printf("Mesh position in local %f, %f\n", chicken_mesh->vertices[0].position.x, chicken_mesh->vertices[0].position.y);
-				printf("Mesh position in world %f, %f\n", chicken_mesh_position.x, chicken_mesh_position.y);*/
 				for (uint j = 0; j < chicken_mesh->vertices.size(); j++) {
 					vec3 chicken_mesh_position = transform.mat *
 						vec3(chicken_mesh->vertices[j].position.x, chicken_mesh->vertices[j].position.y, 1.f);
-					//printf("%f, %f\n", motion_i.position.x, motion_i.position.y);
-					
-					createLine(vec2(chicken_mesh_position.x, chicken_mesh_position.y), point);
+					createLine(vec2(chicken_mesh_position), point);
 				}
 			}
 				
