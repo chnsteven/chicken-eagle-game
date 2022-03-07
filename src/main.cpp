@@ -19,6 +19,10 @@ struct Mode
 };
 
 float x = 0.f;
+// keeps track of number of frames so far
+int frame_count = 0;
+// user controllable update rate for AI
+int update_frame_rate = 10;
 
 
 // Entry point
@@ -54,24 +58,28 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
-
+		frame_count++;
+		
 		// TODO A2: you can implement the debug freeze here but other places are possible too.
 		// freeze for 0.5 second
-		if (debugging.in_freeze_mode && x <= 500.f) {
+		if (debugging.in_freeze_mode && x < 500.f) {
+			x += elapsed_ms;
 			ai.debug();
 			physics.debug();
 			renderer.draw();
-
-			x += elapsed_ms;
 		}	
 		else {
+			debugging.in_freeze_mode = false;
+			x = 0.f;
 			world.step(elapsed_ms);
-			ai.step(elapsed_ms);
+			if (frame_count % update_frame_rate == 0) {
+				ai.step(elapsed_ms);
+			}
+			ai.debug();
 			physics.step(elapsed_ms);
 			world.handle_collisions();
 			renderer.draw();
-			x = 0.f;
-			debugging.in_freeze_mode = false;
+			
 		}
 	}
 
