@@ -66,7 +66,6 @@ int main()
 			x += elapsed_ms;
 			ai.debug();
 			physics.debug();
-			renderer.draw();
 		}	
 		else {
 			debugging.in_freeze_mode = false;
@@ -78,9 +77,8 @@ int main()
 			ai.debug();
 			physics.step(elapsed_ms);
 			world.handle_collisions();
-			renderer.draw();
-			
 		}
+		renderer.draw();
 	}
 
 	return EXIT_SUCCESS;
