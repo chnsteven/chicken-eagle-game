@@ -59,7 +59,6 @@ void PhysicsSystem::debug() {
 		Entity line4 = createLine(vec2(motion_i.position.x, motion_i.position.y + radius), horizontal_line);
 
 		if (registry.meshPtrs.has(entity_i)) {
-			//vec2 point = abs(motion_i.scale) / 25.f;
 			vec2 point = { 5.f, 5.f };
 			for (uint j = 0; j < chicken_mesh->vertices.size(); j++) {
 				vec3 chicken_mesh_position = transform.mat *

@@ -453,6 +453,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		else
 			debugging.in_debug_mode = true;
 	}
+	 
+	if (key == GLFW_KEY_F) {
+		if (action == GLFW_PRESS)
+			debugging.in_freeze_mode = true;
+	}
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
@@ -513,10 +518,9 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	Motion& motion = registry.motions.get(player_chicken);
 	MotionFlag& motion_flag = registry.motionFlags.get(player_chicken);
 
-	if (motion_flag.alive && !debugging.in_debug_mode) {
+	if (motion_flag.alive && !debugging.in_freeze_mode) {
 		motion.angle = atan2(mouse_position.y - motion.position.y,
 			motion.position.x - mouse_position.x);
 	}
-
 	//(vec2)mouse_position; // dummy to avoid compiler warning
 }

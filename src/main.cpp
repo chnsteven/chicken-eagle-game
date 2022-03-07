@@ -18,7 +18,9 @@ struct Mode
 	bool advance = false;
 };
 
-float x;
+float x = 0.f;
+
+
 // Entry point
 int main()
 {
@@ -54,20 +56,23 @@ int main()
 		t = now;
 
 		// TODO A2: you can implement the debug freeze here but other places are possible too.
-		if (debugging.in_debug_mode) {
+		// freeze for 0.5 second
+		if (debugging.in_freeze_mode && x <= 500.f) {
 			ai.debug();
 			physics.debug();
 			renderer.draw();
+
+			x += elapsed_ms;
 		}	
 		else {
 			world.step(elapsed_ms);
 			ai.step(elapsed_ms);
 			physics.step(elapsed_ms);
 			world.handle_collisions();
-
 			renderer.draw();
+			x = 0.f;
+			debugging.in_freeze_mode = false;
 		}
-			
 	}
 
 	return EXIT_SUCCESS;

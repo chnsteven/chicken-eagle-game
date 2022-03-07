@@ -26,5 +26,4 @@ private:
 	void bugDT(Motion& bug, Motion& chicken);
 	// simple function to check if bug is epsilon close to the chicken
 	bool in_bug_range(Motion& bug, Motion& chicken);
-
 };
