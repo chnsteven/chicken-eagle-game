@@ -82,7 +82,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position += step_seconds * motion.velocity;
 
 		// A2: handle collisions with left/right walls, objective: to bounce off walls
-		if (registry.eatables.has(entity) || registry.deadlys.has(entity)) {
+		if (registry.eatables.has(entity)) {
 			if (!registry.players.has(entity)) {
 				vec2 bb = get_bounding_box(motion);
 				if (motion.position.x + bb.x / 2.f >= window_width_px) {
@@ -94,6 +94,18 @@ void PhysicsSystem::step(float elapsed_ms)
 					motion.position.x = bb.x / 2.f;
 					motion.velocity.x = -motion.velocity.x;
 				}
+			}
+		}
+		if (registry.deadlys.has(entity)) {
+			vec2 bb = get_bounding_box(motion);
+			if (motion.position.y + bb.y / 2.f >= window_height_px) {
+				motion.position.y = window_height_px - bb.y / 2.f;
+				motion.velocity.y = -motion.velocity.y;
+			}
+
+			if (motion.position.y - bb.y / 2.f <= 0.f) {
+				motion.position.y = bb.y / 2.f;
+				motion.velocity.y = -motion.velocity.y;
 			}
 		}
 	}

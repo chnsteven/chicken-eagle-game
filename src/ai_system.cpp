@@ -5,30 +5,31 @@
 // the diagonal distance of the window from one corner to another corner 
 const float radius_of_window = sqrt(dot((float)window_width_px, (float)window_height_px));
 // an epsilon is the distance at which the bug AI is triggered
-const float epsilon = radius_of_window / 4.f;
+const float bug_epsilon = radius_of_window / 4.f;
+const float eagle_epsilon = radius_of_window / 3.f;
 
-void wander_around() {
-	// stub
+vec2 cal_distance(Motion& obj1, Motion& obj2) {
+	return vec2(abs(obj1.position.x - obj2.position.x), abs(obj1.position.y - obj2.position.y));
 }
 
-void chase_chicken() {
-	// stub
-}
-void avoid_bugs() {
-	// stub
+void wander_around(Motion& eagle) {
+	if (0.f <= eagle.position.y && eagle.position.y <= 100.f)
+		eagle.velocity.y = abs(eagle.velocity.y);
+	else if (window_height_px - 100.f <= eagle.position.y && eagle.position.y <= window_height_px)
+		eagle.velocity.y = -abs(eagle.velocity.y);
+	if (0.f <= eagle.position.x && eagle.position.x <= 100.f)
+		eagle.velocity.x = abs(eagle.velocity.x);
+	else if (window_height_px - 100.f <= eagle.position.x && eagle.position.x <= window_height_px)
+		eagle.velocity.x = -abs(eagle.velocity.x);
 }
 
 bool in_bug_range(Motion& bug, Motion& chicken) {
-	vec2 distance;
-	distance.x = abs(bug.position.x - chicken.position.x);
-	distance.y = abs(bug.position.y - chicken.position.y);
-	return distance.x <= epsilon && distance.y <= epsilon;
+	vec2 distance = cal_distance(bug, chicken);
+	return distance.x <= bug_epsilon && distance.y <= bug_epsilon;
 }
 bool in_eagle_range(Motion& eagle, Motion& chicken) {
-	vec2 distance;
-	distance.x = abs(eagle.position.x - chicken.position.x);
-	distance.y = abs(eagle.position.y - chicken.position.y);
-	return distance.x <= epsilon && distance.y <= epsilon;
+	vec2 distance = cal_distance(eagle, chicken);
+	return distance.x <= eagle_epsilon && distance.y <= eagle_epsilon;
 }
 
 void AISystem::debug() {
@@ -120,12 +121,65 @@ void AISystem::bugDT(Motion& bug, Motion& chicken) {
 
 void AISystem::eagleDT(Motion& eagle, Motion& chicken) {
 	// detection area is a box with epsilon width and height
-	if (in_eagle_range(eagle, chicken)) {
-		chase_chicken();
-		avoid_bugs();
+	// attempt to find the closest bug around the eagle, if found, move in opposite direction.
+	// if not found and if chicken is in eagle's range, chase the chicken
+
+	Entity closest_bug;
+	float min_dist_bug = std::numeric_limits<float>::infinity();
+	for (Entity entity : registry.eatables.entities) {
+		// skip the players and entity that doesn't have motion component
+		if (registry.players.has(entity) || !registry.motions.has(entity))
+			continue;
+
+		Motion& bug = registry.motions.get(entity);
+		float dist_bug = sqrt(dot(eagle.position.x - bug.position.x, eagle.position.y - bug.position.y));
+
+		if (dist_bug < min_dist_bug) {
+			min_dist_bug = dist_bug;
+			closest_bug = entity;
+		}
 	}
-	// if not in range, let bug drops with default velocity in y
-	else {
-		wander_around();
+	//float weight = 0.7;
+	////Motion& closest_bug_motion = registry.motions.get(closest_bug);
+	////vec2 direction_vector_to_bug = normalize(eagle.position - closest_bug_motion.position);
+	//vec2 direction_vector_to_chicken = -normalize(eagle.position - chicken.position);
+	//vec2 direction_vector;
+	//vec2 distance = cal_distance(eagle, chicken);
+	//float dist = sqrt(dot(distance.x, distance.y));
+
+	//if (in_eagle_range(eagle, chicken)) {
+	//	direction_vector = direction_vector_to_chicken;
+	//	eagle.velocity = normalize(direction_vector) * 100.f;
+	//}
+	//else {
+	//	wander_around(eagle);
+	//}
+	
+	if (registry.motions.has(closest_bug)) {
+		float weight = 0.9;
+		Motion& closest_bug_motion = registry.motions.get(closest_bug);
+		vec2 direction_vector_to_bug = normalize(eagle.position - closest_bug_motion.position);
+		vec2 direction_vector_to_chicken = -normalize(eagle.position - chicken.position);
+		vec2 direction_vector;
+		vec2 distance = cal_distance(eagle, chicken);
+		float dist = sqrt(dot(distance.x, distance.y));
+
+		if (in_eagle_range(eagle, chicken) && in_eagle_range(eagle, closest_bug_motion)) {
+			direction_vector = weight * direction_vector_to_chicken + (1 - weight) * direction_vector_to_bug;
+			eagle.velocity = normalize(direction_vector) * 100.f;
+		}
+		else if (in_eagle_range(eagle, chicken)) {
+			direction_vector = direction_vector_to_chicken;
+			eagle.velocity = normalize(direction_vector) * 100.f;
+		}
+		else if (in_eagle_range(eagle, closest_bug_motion)) {
+			eagle.velocity = normalize(direction_vector) * 10.f;
+			direction_vector = direction_vector_to_bug;
+		}
+		// if not in range, let bug drops with default velocity in y
+		else
+			wander_around(eagle);
 	}
+	
+
 }

@@ -12,12 +12,12 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_EAGLES = 1;
+const size_t MAX_EAGLES = 0;
 const size_t MAX_BUG = 5;
 const size_t MAX_VORTEX = 1;
 const size_t MAX_STONE = 10;
 const size_t EAGLE_DELAY_MS = 3000 * 3;
-const size_t BUG_DELAY_MS = 1000 * 3;
+const size_t BUG_DELAY_MS = 5000 * 3;
 const size_t VORTEX_DELAY_MS = 3000 * 3;
 const size_t STONE_DELAY_MS = 2000 * 3;
 struct Mode 
@@ -156,7 +156,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// (the containers exchange the last element with the current)
 	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i) {
 		Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
+		if (motion.position.x + abs(motion.scale.x) < 0.f ||
+			motion.position.x - abs(motion.scale.y) > window_height_px) {
 			if (!registry.players.has(motions_registry.entities[i])) // don't remove the player
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
@@ -168,7 +169,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Reset timer
 		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
 		// Create eagle with random initial position
-		createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), -100.f));
+		createEagle(renderer, vec2(25.f + uniform_dist(rng) * (window_width_px - 100.f), -100.f));
 	}
 
 	// Spawning new bugs
