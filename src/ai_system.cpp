@@ -35,11 +35,25 @@ bool in_eagle_range(Motion& eagle, Motion& chicken) {
 void AISystem::debug() {
 	if (debugging.in_debug_mode || debugging.in_freeze_mode) {
 		for (uint i = 0; i < registry.eatables.size(); i++) {
-			Entity bug_i = registry.eatables.entities[i];
-			Motion& motion_i = registry.motions.get(bug_i);
+			Entity entity_i = registry.eatables.entities[i];
+			Motion& motion_i = registry.motions.get(entity_i);
 
 			// don't draw debugging visuals around debug lines
-			if (registry.players.has(bug_i))
+			if (registry.players.has(entity_i))
+				continue;
+
+			vec2 direction_vector_x = { motion_i.velocity.x, 10.f };
+			vec2 direction_vector_y = { 10.f , motion_i.velocity.y };
+
+			Entity direction_vector_line_x = createLine(motion_i.position + vec2(motion_i.velocity.x / 2.f, 0.f), direction_vector_x);
+			Entity direction_vector_line_y = createLine(motion_i.position + vec2(0.f, motion_i.velocity.y / 2.f), direction_vector_y);
+		}
+		for (uint i = 0; i < registry.deadlys.size(); i++) {
+			Entity entity_i = registry.deadlys.entities[i];
+			Motion& motion_i = registry.motions.get(entity_i);
+
+			// don't draw debugging visuals around debug lines
+			if (registry.players.has(entity_i))
 				continue;
 
 			vec2 direction_vector_x = { motion_i.velocity.x, 10.f };
@@ -78,7 +92,7 @@ void AISystem::step(float elapsed_ms)
 			continue;
 		Motion& eagle_motion = registry.motions.get(entity);
 		// detection area is a box with epsilon width and height
-		eagleDT(eagle_motion, chicken_motion);
+		eagleDT(eagle_motion, chicken_motion, uniform_dist(rng) * registry.eatables.size());
 	}
 
 	(void)elapsed_ms; // placeholder to silence unused warning until implemented
@@ -119,20 +133,34 @@ void AISystem::bugDT(Motion& bug, Motion& chicken) {
 	}
 }
 
-void AISystem::eagleDT(Motion& eagle, Motion& chicken) {
+void AISystem::eagleDT(Motion& eagle, Motion& chicken, float random_float) {
 	// detection area is a box with epsilon width and height
 	// attempt to find the closest bug around the eagle, if found, move in opposite direction.
 	// if not found and if chicken is in eagle's range, chase the chicken
-	vec2 direction_vector_to_chicken = -normalize(eagle.position - chicken.position);
-	vec2 direction_vector;
-	vec2 distance = cal_distance(eagle, chicken);
-	float dist = sqrt(dot(distance.x, distance.y));
-	if (in_eagle_range(eagle, chicken)) {
-		direction_vector = direction_vector_to_chicken;
-		eagle.velocity = normalize(direction_vector) * 100.f;
+	if (registry.eatables.size() > 0) {
+		float weight = 0.5;
+		int random_index = (int) random_float;
+		Entity random_eatable = registry.eatables.entities[random_index];
+		Motion& random_eatable_motion = registry.motions.get(random_eatable);
+		Entity chicken = registry.players.entities[0];
+		Motion& chicken_motion = registry.motions.get(chicken);
+		vec2 direction_vector_to_random_eatable = normalize(eagle.position - random_eatable_motion.position);
+		vec2 direction_vector_to_chicken = -normalize(eagle.position - chicken_motion.position);
+		vec2 direction_vector;
+		//vec2 distance = cal_distance(eagle, chicken);
+		//float dist = sqrt(dot(distance.x, distance.y));
+		if (in_eagle_range(eagle, random_eatable_motion) && in_eagle_range(eagle, random_eatable_motion)) {
+			direction_vector = weight * direction_vector_to_chicken + (1 - weight) * direction_vector_to_random_eatable;
+			eagle.velocity = normalize(direction_vector) * 100.f;
+		}
+		else if (in_eagle_range(eagle, random_eatable_motion)) {
+			eagle.velocity = normalize(direction_vector_to_random_eatable) * 100.f;
+		}
+		else if (in_eagle_range(eagle, chicken_motion)) {
+			eagle.velocity = normalize(direction_vector_to_chicken) * 100.f;
+		}
+		// if not in range, let bug drops with default velocity in y
+		else
+			wander_around(eagle);
 	}
-	// if not in range, let bug drops with default velocity in y
-	else
-		wander_around(eagle);
-
 }
