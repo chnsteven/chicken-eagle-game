@@ -12,12 +12,12 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_EAGLES = 15;
+const size_t MAX_EAGLES = 0;
 const size_t MAX_BUG = 5;
 const size_t MAX_VORTEX = 1;
 const size_t MAX_STONE = 10;
-const size_t EAGLE_DELAY_MS = 5000 * 3;
-const size_t BUG_DELAY_MS = 8000 * 3;
+const size_t EAGLE_DELAY_MS = 3000 * 3;
+const size_t BUG_DELAY_MS = 5000 * 3;
 const size_t VORTEX_DELAY_MS = 3000 * 3;
 const size_t STONE_DELAY_MS = 2000 * 3;
 struct Mode 
@@ -156,7 +156,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// (the containers exchange the last element with the current)
 	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i) {
 		Motion& motion = motions_registry.components[i];
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
+		if (motion.position.x + abs(motion.scale.x) < 0.f ||
+			motion.position.x - abs(motion.scale.y) > window_height_px) {
 			if (!registry.players.has(motions_registry.entities[i])) // don't remove the player
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
@@ -168,7 +169,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Reset timer
 		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
 		// Create eagle with random initial position
-		createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), -100.f));
+		createEagle(renderer, vec2(25.f + uniform_dist(rng) * (window_width_px - 100.f), -100.f));
 	}
 
 	// Spawning new bugs
@@ -178,7 +179,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		next_bug_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
 		// Create bug with random initial position
 		createBug(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f),
-			-100.f), uniform_dist(rng) * 50.f + 50.f); // random speed 50.f - 100.f
+			-100.f), uniform_dist(rng) * 100.f + 50.f); // random speed 50.f - 150.f
 	}
 
 	if (mode.advance) {
@@ -453,6 +454,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		else
 			debugging.in_debug_mode = true;
 	}
+	 
+	if (key == GLFW_KEY_F) {
+		if (action == GLFW_PRESS)
+			debugging.in_freeze_mode = true;
+	}
 
 	// Control the current speed with `<` `>`
 	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
@@ -470,7 +476,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	Motion& motion = registry.motions.get(player_chicken);
 
 	if (motion_flag.alive && !motion_flag.dragged) {
-		if (action == GLFW_PRESS) {
+		if (action == GLFW_PRESS ) {
 			if (key == GLFW_KEY_LEFT) {
 				motion_flag.moving_left = true;
 			}
@@ -501,24 +507,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 	}
-
-	// naive implementation using GLFW_REPEAT
-	//if (action == GLFW_REPEAT && key == GLFW_KEY_LEFT) {
-	//	motion.position += scalar * vec2(-current_speed * cos(motion.angle),
-	//		current_speed * sin(motion.angle));
-	//}
-	//if (action == GLFW_REPEAT && key == GLFW_KEY_RIGHT) {
-	//	motion.position += scalar * vec2(current_speed * cos(motion.angle),
-	//		-current_speed * sin(motion.angle));
-	//}
-	//if (action == GLFW_REPEAT && key == GLFW_KEY_UP) {
-	//	motion.position += scalar * vec2(-current_speed * sin(motion.angle),
-	//		-current_speed * cos(motion.angle));
-	//}
-	//if (action == GLFW_REPEAT && key == GLFW_KEY_DOWN) {
-	//	motion.position += scalar * vec2(current_speed * sin(motion.angle),
-	//		current_speed * cos(motion.angle));
-	//}
 }
 
 
@@ -531,10 +519,9 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	Motion& motion = registry.motions.get(player_chicken);
 	MotionFlag& motion_flag = registry.motionFlags.get(player_chicken);
 
-	if (motion_flag.alive) {
+	if (motion_flag.alive && !debugging.in_freeze_mode) {
 		motion.angle = atan2(mouse_position.y - motion.position.y,
 			motion.position.x - mouse_position.x);
 	}
-
 	//(vec2)mouse_position; // dummy to avoid compiler warning
 }

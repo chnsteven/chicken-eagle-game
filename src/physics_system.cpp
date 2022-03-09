@@ -1,6 +1,7 @@
 // internal
 #include "physics_system.hpp"
 #include "world_init.hpp"
+#include "math.h"
 
 // Returns the local bounding coordinates scaled by the current size of the entity
 vec2 get_bounding_box(const Motion& motion)
@@ -26,6 +27,48 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+void PhysicsSystem::debug() {
+	ComponentContainer<Motion>& motion_container = registry.motions;
+	Entity chicken = registry.players.entities[0]; // assumed there's only 1 chicken, if multiple, needs an alternative
+	Motion& chicken_motion = registry.motions.get(chicken);
+	Mesh* chicken_mesh = registry.meshPtrs.get(chicken);
+
+	Transform transform;
+	transform.translate(chicken_motion.position);
+	transform.rotate(-chicken_motion.angle);
+	transform.scale(chicken_motion.scale);
+
+	uint size_before_adding_new = (uint)motion_container.components.size();
+	for (uint i = 0; i < size_before_adding_new; i++)
+	{
+		Motion& motion_i = motion_container.components[i];
+		Entity entity_i = motion_container.entities[i];
+
+		// don't draw debugging visuals around debug lines
+		if (registry.debugComponents.has(entity_i))
+			continue;
+
+		// !!! TODO A2: implement debug bounding boxes instead of crosses
+		const vec2 bonding_box = get_bounding_box(motion_i);
+		float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
+		vec2 vertical_line = { motion_i.scale.x / 50.f, 2 * radius };
+		vec2 horizontal_line = { 2 * radius, motion_i.scale.y / 50.f };
+		Entity line1 = createLine(vec2(motion_i.position.x - radius, motion_i.position.y), vertical_line);
+		Entity line2 = createLine(vec2(motion_i.position.x + radius, motion_i.position.y), vertical_line);
+		Entity line3 = createLine(vec2(motion_i.position.x, motion_i.position.y - radius), horizontal_line);
+		Entity line4 = createLine(vec2(motion_i.position.x, motion_i.position.y + radius), horizontal_line);
+
+		if (registry.meshPtrs.has(entity_i)) {
+			vec2 point = { 5.f, 5.f };
+			for (uint j = 0; j < chicken_mesh->vertices.size(); j++) {
+				vec3 chicken_mesh_position = transform.mat *
+					vec3(chicken_mesh->vertices[j].position.x, chicken_mesh->vertices[j].position.y, 1.f);
+				createLine(vec2(chicken_mesh_position), point);
+			}
+		}
+
+	}
+}
 void PhysicsSystem::step(float elapsed_ms)
 {
 	// Move bug based on how much time has passed, this is to (partially) avoid
@@ -39,9 +82,31 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position += step_seconds * motion.velocity;
 
 		// A2: handle collisions with left/right walls, objective: to bounce off walls
-		if (motion.position.x - motion.scale.x / 2.f >= window_width_px ||
-			motion.position.x + motion.scale.x / 2.f <= 0.f) {
-			motion.velocity = vec2(-motion.velocity.x, motion.velocity.y);
+		if (registry.eatables.has(entity)) {
+			if (!registry.players.has(entity)) {
+				vec2 bb = get_bounding_box(motion);
+				if (motion.position.x + bb.x / 2.f >= window_width_px) {
+					motion.position.x = window_width_px - bb.x / 2.f;
+					motion.velocity.x = -motion.velocity.x;
+				}
+
+				if (motion.position.x - bb.x / 2.f <= 0.f) {
+					motion.position.x = bb.x / 2.f;
+					motion.velocity.x = -motion.velocity.x;
+				}
+			}
+		}
+		if (registry.deadlys.has(entity)) {
+			vec2 bb = get_bounding_box(motion);
+			if (motion.position.y + bb.y / 2.f >= window_height_px) {
+				motion.position.y = window_height_px - bb.y / 2.f;
+				motion.velocity.y = -motion.velocity.y;
+			}
+
+			if (motion.position.y - bb.y / 2.f <= 0.f) {
+				motion.position.y = bb.y / 2.f;
+				motion.velocity.y = -motion.velocity.y;
+			}
 		}
 	}
 
@@ -76,49 +141,71 @@ void PhysicsSystem::step(float elapsed_ms)
 	// TODO A2: HANDLE CHICKEN - WALL collisions HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 2
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	Entity chicken = registry.players.entities[0]; // assumed there's only 1 chicken, if multiple, needs an alternative imeplementation
+	// you may need the following quantities to compute wall positions
+	(float)window_width_px; (float)window_height_px;
+
+	Entity chicken = registry.players.entities[0]; // assumed there's only 1 chicken, if multiple, needs an alternative
 	Motion& chicken_motion = registry.motions.get(chicken);
-	vec2 chicken_position = chicken_motion.position; // in world coord
+	vec2 chicken_position = chicken_motion.position;
 	vec2 chicken_bb = get_bounding_box(chicken_motion); // bounding box of chicken
 	Mesh* chicken_mesh = registry.meshPtrs.get(chicken);
 
 	Transform transform;
-
 	transform.translate(chicken_motion.position);
+	transform.rotate(-chicken_motion.angle);
 	transform.scale(chicken_motion.scale);
-	transform.rotate(chicken_motion.angle);
-	
-	// case 1: chicken at top left 
-	// case 2: chicken at top right
-	// case 3: chicken at bot left 
-	// case 4: chicken at bot right
-	// for efficiency, check if bounding box touches the boundaries first. If yes check vertices of the chicken
+
+	// for efficiency, check if bounding box touches the walls first. If yes check vertices of the chicken
 	if (chicken_position.x - chicken_bb.x / 2.f <= 0.f ||
-		chicken_position.x + chicken_bb.x / 2.f >= window_width_px ||
+		chicken_position.x + chicken_bb.x / 2.f >= window_width_px || 
 		chicken_position.y - chicken_bb.y / 2.f <= 0.f ||
 		chicken_position.y + chicken_bb.y / 2.f >= window_height_px) {
-		
-		for (uint i = 0; i < chicken_mesh->vertices.size(); i++) {
-			// transform mesh local coord to world coord
-			// intended for position comparisons in world coord
-			vec3 chicken_mesh_position = transform.mat * chicken_mesh->vertices[i].position; 
-			
-			if (chicken_mesh_position.x <= 0.f) {
-				printf("%f\n", chicken_mesh_position.x);
-				chicken_motion.position.x = chicken_bb.x / 2.f;
-			}
-			//if (chicken_mesh_position.x >= window_width_px) {
-			//	chicken_motion.position.x = window_width_px - chicken_bb.x / 2.f;
-			//}
-			//if (chicken_mesh_position.y <= 0.f)
-			//	chicken_motion.position.y = chicken_bb.y / 2.f;
-			//if (chicken_mesh_position.y >= window_height_px)
-			//	chicken_motion.position.y = window_height_px - chicken_bb.y / 2.f;
-		}
-	}
+		// used for proper offseting when chicken mesh collides with walls
+		// not setting the chicken position during looping to avoid glitchy (repeatedly) assignment of position
+		// only keep the max and min values to avoid reposition the chicken by the wrong offset ( too small or too large) 
+		float min_mesh_position_x = std::numeric_limits<float>::infinity();
+		float max_mesh_position_x = -std::numeric_limits<float>::infinity();
+		float min_mesh_position_y = std::numeric_limits<float>::infinity();
+		float max_mesh_position_y = -std::numeric_limits<float>::infinity();
+		// keep track of which walls does the chicken mesh collide with, could have more than 1 wall at a time
+		bool left = false; bool right = false; bool top = false; bool bot = false;
 
-	// you may need the following quantities to compute wall positions
-	(float)window_width_px; (float)window_height_px;
+		for (uint i = 0; i < chicken_mesh->vertices.size(); i++) {
+			// local frame of chicken mesh -> world frame
+			vec3 chicken_mesh_position = transform.mat * vec3(chicken_mesh->vertices[i].position.x, 
+				chicken_mesh->vertices[i].position.y, 1.f);
+			// comparison between mesh position and walls
+			if (chicken_mesh_position.x <= 0.f) {
+				left = true;
+				if (chicken_mesh_position.x < min_mesh_position_x)
+					min_mesh_position_x = chicken_mesh_position.x;
+			}
+			else if (chicken_mesh_position.x >= window_width_px) { 
+				right = true;
+				if (chicken_mesh_position.x > max_mesh_position_x) 
+					max_mesh_position_x = chicken_mesh_position.x;
+			}
+			if (chicken_mesh_position.y <= 0.f) { 
+				top = true;
+				if (chicken_mesh_position.y < min_mesh_position_y) 
+					min_mesh_position_y = chicken_mesh_position.y;
+			}	
+			else if (chicken_mesh_position.y >= window_height_px) {
+				bot = true;
+				if (chicken_mesh_position.y > max_mesh_position_y)
+					max_mesh_position_y = chicken_mesh_position.y;
+			}
+		}
+		// determine which walls the chicken mesh is colliding with, for efficiency, do not consider the opposte walls case
+		if (left)
+			chicken_motion.position.x = chicken_position.x + abs(min_mesh_position_x);
+		else if (right)
+			chicken_motion.position.x = chicken_position.x - abs(window_width_px - max_mesh_position_x);
+		if (top)
+			chicken_motion.position.y = chicken_position.y + abs(min_mesh_position_y);
+		else if (bot)
+			chicken_motion.position.y = chicken_position.y - abs(window_height_px - max_mesh_position_y);
+	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A2: DRAW DEBUG INFO HERE on Chicken mesh collision
@@ -128,29 +215,7 @@ void PhysicsSystem::step(float elapsed_ms)
 
 	// debugging of bounding boxes
 	if (debugging.in_debug_mode)
-	{
-		uint size_before_adding_new = (uint)motion_container.components.size();
-		for (uint i = 0; i < size_before_adding_new; i++)
-		{
-			Motion& motion_i = motion_container.components[i];
-			Entity entity_i = motion_container.entities[i];
-
-			// don't draw debugging visuals around debug lines
-			if (registry.debugComponents.has(entity_i))
-				continue;
-
-			// visualize the radius with two axis-aligned lines
-			const vec2 bonding_box = get_bounding_box(motion_i);
-			float radius = sqrt(dot(bonding_box/2.f, bonding_box/2.f));
-			vec2 line_scale1 = { motion_i.scale.x / 10, 2*radius };
-			vec2 line_scale2 = { 2*radius, motion_i.scale.x / 10};
-			vec2 position = motion_i.position;
-			Entity line1 = createLine(motion_i.position, line_scale1);
-			Entity line2 = createLine(motion_i.position, line_scale2);
-
-			// !!! TODO A2: implement debug bounding boxes instead of crosses
-		}
-	}
+		debug();
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG collisions HERE
