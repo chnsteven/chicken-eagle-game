@@ -19,4 +19,6 @@ private:
 	// bug decision tree
 	void bugDT(Motion& bug, Motion& chicken);
 	void eagleDT(Motion& eagle, Motion& chicken);
+	std::default_random_engine rng;
+	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 };
