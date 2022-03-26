@@ -16,10 +16,13 @@ const size_t MAX_EAGLES = 0;
 const size_t MAX_BUG = 5;
 const size_t MAX_VORTEX = 1;
 const size_t MAX_STONE = 10;
-const size_t EAGLE_DELAY_MS = 3000 * 3;
-const size_t BUG_DELAY_MS = 5000 * 3;
-const size_t VORTEX_DELAY_MS = 3000 * 3;
-const size_t STONE_DELAY_MS = 2000 * 3;
+const size_t MAX_EGG = 10;
+const size_t EAGLE_DELAY_MS = 9000;
+const size_t BUG_DELAY_MS = 15000;
+const size_t VORTEX_DELAY_MS = 9000;
+const size_t STONE_DELAY_MS = 6000;
+const size_t EGG_DELAY_MS = 1000;
+
 struct Mode 
 {
 	bool advance = false;
@@ -323,7 +326,7 @@ void WorldSystem::restart_game() {
 
 	// !! TODO A3: Enable static eggs on the ground
 	// Create eggs on the floor for reference
-	/*
+	
 	for (uint i = 0; i < 20; i++) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
@@ -333,7 +336,7 @@ void WorldSystem::restart_game() {
 		float brightness = uniform_dist(rng) * 0.5 + 0.5;
 		registry.colors.insert(egg, { brightness, brightness, brightness});
 	}
-	*/
+	
 }
 
 // Compute collisions between entities

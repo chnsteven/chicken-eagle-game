@@ -12,11 +12,6 @@
 #include "world_system.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
-struct Mode
-{
-	bool basic = true;
-	bool advance = false;
-};
 
 float x = 0.f;
 // keeps track of number of frames so far

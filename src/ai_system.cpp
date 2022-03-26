@@ -85,15 +85,16 @@ void AISystem::step(float elapsed_ms)
 		bugDT(bug_motion, chicken_motion);
 	}
 
-	// loop over entities with deadly component, namely eagle
-	for (Entity entity : registry.deadlys.entities) {
-		// skip the entity that doesn't have motion component
-		if (!registry.motions.has(entity))
-			continue;
-		Motion& eagle_motion = registry.motions.get(entity);
-		// detection area is a box with epsilon width and height
-		eagleDT(eagle_motion, chicken_motion, uniform_dist(rng) * registry.eatables.size());
-	}
+	//// loop over entities with deadly component, namely eagle
+	//for (Entity entity : registry.deadlys.entities) {
+	//	// skip the entity that doesn't have motion component
+	//	if (!registry.motions.has(entity))
+	//		continue;
+	//	Motion& eagle_motion = registry.motions.get(entity);
+	//	// detection area is a box with epsilon width and height
+	//	eagleDT(eagle_motion, chicken_motion, uniform_dist(rng) * registry.eatables.size());
+	//}
+
 
 	(void)elapsed_ms; // placeholder to silence unused warning until implemented
 
@@ -138,7 +139,8 @@ void AISystem::eagleDT(Motion& eagle, Motion& chicken, float random_float) {
 	// attempt to find the closest bug around the eagle, if found, move in opposite direction.
 	// if not found and if chicken is in eagle's range, chase the chicken
 	if (registry.eatables.size() > 0) {
-		float weight = 0.5;
+		float weight = 0.75;
+		float default_speed = 200.f;
 		int random_index = (int) random_float;
 		Entity random_eatable = registry.eatables.entities[random_index];
 		Motion& random_eatable_motion = registry.motions.get(random_eatable);
@@ -151,13 +153,13 @@ void AISystem::eagleDT(Motion& eagle, Motion& chicken, float random_float) {
 		//float dist = sqrt(dot(distance.x, distance.y));
 		if (in_eagle_range(eagle, random_eatable_motion) && in_eagle_range(eagle, random_eatable_motion)) {
 			direction_vector = weight * direction_vector_to_chicken + (1 - weight) * direction_vector_to_random_eatable;
-			eagle.velocity = normalize(direction_vector) * 100.f;
+			eagle.velocity = normalize(direction_vector) * default_speed;
 		}
 		else if (in_eagle_range(eagle, random_eatable_motion)) {
-			eagle.velocity = normalize(direction_vector_to_random_eatable) * 100.f;
+			eagle.velocity = normalize(direction_vector_to_random_eatable) * default_speed;
 		}
 		else if (in_eagle_range(eagle, chicken_motion)) {
-			eagle.velocity = normalize(direction_vector_to_chicken) * 100.f;
+			eagle.velocity = normalize(direction_vector_to_chicken) * default_speed;
 		}
 		// if not in range, let bug drops with default velocity in y
 		else
