@@ -65,6 +65,14 @@ struct Motion {
 	vec2 scale = { 10, 10 };
 };
 
+struct Physics {
+	vec2 f; // newtonian force
+	float m; // mass
+	float a; // acceleration
+	vec2 g = { 0.f, 9.8 * 10.E-6 }; // gravity, non-negative because downward acceleration is positive
+							// time in miliseconds, so times a factor of 10^-6
+};
+
 // Stucture to store collision information
 struct Collision
 {
@@ -112,7 +120,7 @@ struct BlowUpTimer
 // A timer that will be associated with egg spawn
 struct EggTimer
 {
-	float counter_ms = 500;
+	float counter_ms = 1500;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)

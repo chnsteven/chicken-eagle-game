@@ -21,7 +21,7 @@ const size_t EAGLE_DELAY_MS = 9000;
 const size_t BUG_DELAY_MS = 15000;
 const size_t VORTEX_DELAY_MS = 9000;
 const size_t STONE_DELAY_MS = 6000;
-const size_t EGG_DELAY_MS = 1000;
+const size_t EGG_DELAY_MS = 150;
 
 struct Mode 
 {
@@ -196,17 +196,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	//	registry.colors.insert(egg, { brightness, brightness, brightness });
 	//}
 	next_egg_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.eatables.components.size() <= MAX_EGG && next_egg_spawn < 0.f) {
+	if (next_egg_spawn < 0.f) {
 		// Reset timer
 		next_egg_spawn = (EGG_DELAY_MS / 2) + uniform_dist(rng) * (EGG_DELAY_MS / 2);
-		// Create bug with random initial position
-		Entity egg = createEgg(registry.motions.get(player_chicken).position, vec2(10.f, 10.f)); // random speed 50.f - 150.f
+		// Create egg with random velocity and scale
+		float radius = 20 * (uniform_dist(rng) + 0.3f); // range 0.6 .. 2.6
+		Entity egg = createEgg(registry.motions.get(player_chicken).position, {radius, radius}); // random speed 50.f - 150.f
+		registry.eggTimers.emplace(egg);
 		Motion& motion = registry.motions.get(egg);
-		float cone_radius = 360 * uniform_dist(rng); // range 0.3 .. 1.3
-		motion.angle = cone_radius;
-		motion.velocity = uniform_dist(rng) * vec2(50.f * cos(motion.angle), 50.f * sin(motion.angle)) + vec2(50.f * cos(motion.angle), 50.f * sin(motion.angle)); // random velocity in [50, 100]
-
-		
+		Motion& player_motion = registry.motions.get(player_chicken);
+		motion.angle = - player_motion.angle + (M_PI/2 * uniform_dist(rng) - M_PI/4);
+		motion.velocity = uniform_dist(rng) * vec2(150.f * cos(motion.angle), 150.f * sin(motion.angle)) +
+			vec2(150.f * cos(motion.angle), 150.f * sin(motion.angle)); // random velocity
 	}
 
 	if (mode.advance) {
@@ -305,6 +306,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			light_up.light_up = 0;
 		}
 	}
+
+	for (Entity entity : registry.eggTimers.entities) {
+		// progress timer
+		EggTimer& counter = registry.eggTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
 	
 	if (mode.advance) {
 		for (Entity entity : registry.blowUpTimers.entities) {

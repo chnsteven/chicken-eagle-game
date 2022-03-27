@@ -45,8 +45,8 @@ void AISystem::debug() {
 			vec2 direction_vector_x = { motion_i.velocity.x, 10.f };
 			vec2 direction_vector_y = { 10.f , motion_i.velocity.y };
 
-			Entity direction_vector_line_x = createLine(motion_i.position + vec2(motion_i.velocity.x / 2.f, 0.f), direction_vector_x);
-			Entity direction_vector_line_y = createLine(motion_i.position + vec2(0.f, motion_i.velocity.y / 2.f), direction_vector_y);
+			/*Entity direction_vector_line_x = createLine(motion_i.position + vec2(motion_i.velocity.x / 2.f, 0.f), direction_vector_x);
+			Entity direction_vector_line_y = createLine(motion_i.position + vec2(0.f, motion_i.velocity.y / 2.f), direction_vector_y);*/
 		}
 		for (uint i = 0; i < registry.deadlys.size(); i++) {
 			Entity entity_i = registry.deadlys.entities[i];
@@ -59,8 +59,8 @@ void AISystem::debug() {
 			vec2 direction_vector_x = { motion_i.velocity.x, 10.f };
 			vec2 direction_vector_y = { 10.f , motion_i.velocity.y };
 
-			Entity direction_vector_line_x = createLine(motion_i.position + vec2(motion_i.velocity.x / 2.f, 0.f), direction_vector_x);
-			Entity direction_vector_line_y = createLine(motion_i.position + vec2(0.f, motion_i.velocity.y / 2.f), direction_vector_y);
+			//Entity direction_vector_line_x = createLine(motion_i.position + vec2(motion_i.velocity.x / 2.f, 0.f), direction_vector_x);
+			//Entity direction_vector_line_y = createLine(motion_i.position + vec2(0.f, motion_i.velocity.y / 2.f), direction_vector_y);
 		}
 	}
 }

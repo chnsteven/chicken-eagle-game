@@ -221,4 +221,17 @@ void PhysicsSystem::step(float elapsed_ms)
 	// TODO A3: HANDLE EGG collisions HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	auto& physics_registry = registry.physics;
+	for (uint i = 0; i < physics_registry.size(); i++)
+	{
+		Physics& physics = physics_registry.components[i];
+		Entity entity = physics_registry.entities[i];
+		Motion& motion = motion_registry.get(entity);
+
+		physics.f = physics.m * physics.g; // Force = mass * gravity
+
+		float step_seconds = elapsed_ms / 1000.f;
+		motion.velocity += physics.f / step_seconds;
+
+	}
 }
