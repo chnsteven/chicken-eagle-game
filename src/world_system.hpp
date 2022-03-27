@@ -58,6 +58,7 @@ private:
 	float next_bug_spawn;
 	float next_vortex_spawn;
 	float next_stone_spawn;
+	float next_egg_spawn;
 	Entity player_chicken;
 
 	// music references

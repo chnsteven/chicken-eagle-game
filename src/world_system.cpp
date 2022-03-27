@@ -185,6 +185,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			-100.f), uniform_dist(rng) * 100.f + 50.f); // random speed 50.f - 150.f
 	}
 
+	// Spawning periodic eggs
+	//for (uint i = 0; i < 20; i++) {
+	//	int w, h;
+	//	glfwGetWindowSize(window, &w, &h);
+	//	float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
+	//	Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
+	//		{ radius, radius });
+	//	float brightness = uniform_dist(rng) * 0.5 + 0.5;
+	//	registry.colors.insert(egg, { brightness, brightness, brightness });
+	//}
+	next_egg_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.eatables.components.size() <= MAX_EGG && next_egg_spawn < 0.f) {
+		// Reset timer
+		next_egg_spawn = (EGG_DELAY_MS / 2) + uniform_dist(rng) * (EGG_DELAY_MS / 2);
+		// Create bug with random initial position
+		Entity egg = createEgg(registry.motions.get(player_chicken).position, vec2(10.f, 10.f)); // random speed 50.f - 150.f
+		Motion& motion = registry.motions.get(egg);
+		float cone_radius = 360 * uniform_dist(rng); // range 0.3 .. 1.3
+		motion.angle = cone_radius;
+		motion.velocity = uniform_dist(rng) * vec2(50.f * cos(motion.angle), 50.f * sin(motion.angle)) + vec2(50.f * cos(motion.angle), 50.f * sin(motion.angle)); // random velocity in [50, 100]
+
+		
+	}
+
 	if (mode.advance) {
 		// Spawning new vortices
 		next_vortex_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -327,15 +351,15 @@ void WorldSystem::restart_game() {
 	// !! TODO A3: Enable static eggs on the ground
 	// Create eggs on the floor for reference
 	
-	for (uint i = 0; i < 20; i++) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
-		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-			         { radius, radius });
-		float brightness = uniform_dist(rng) * 0.5 + 0.5;
-		registry.colors.insert(egg, { brightness, brightness, brightness});
-	}
+	//for (uint i = 0; i < 20; i++) {
+	//	int w, h;
+	//	glfwGetWindowSize(window, &w, &h);
+	//	float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
+	//	Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
+	//		         { radius, radius });
+	//	float brightness = uniform_dist(rng) * 0.5 + 0.5;
+	//	registry.colors.insert(egg, { brightness, brightness, brightness});
+	//}
 	
 }
 
@@ -354,22 +378,28 @@ void WorldSystem::handle_collisions() {
 
 			// Checking Player - Deadly collisions
 			if (registry.deadlys.has(entity_other)) {
-				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the chicken sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, chicken_dead_sound, 0);
+				switch (registry.deadlys.get(entity_other).type) {
+					case(DEADLY_TYPE::EAGLE):
+						// initiate death unless already dying
+						if (!registry.deathTimers.has(entity)) {
+							// Scream, reset timer, and make the chicken sink
+							registry.deathTimers.emplace(entity);
+							Mix_PlayChannel(-1, chicken_dead_sound, 0);
 
-					// !!! TODO A1: change the chicken orientation and color on death
-					vec3& color = registry.colors.get(entity);
-					Motion& motion = registry.motions.get(entity);
-					MotionFlag& motion_flag = registry.motionFlags.get(entity);
-					color = vec3(1.f, 0.f, 0.f);
-					motion_flag.follow_mouse = false;
-					motion_flag.alive = false;
-					motion.angle = M_PI / 2.f;
-					motion.velocity = vec2(0.f, 100.f * current_speed);
-					//motion.position += vec2(0.f, 5.f);
+							// !!! TODO A1: change the chicken orientation and color on death
+							vec3& color = registry.colors.get(entity);
+							Motion& motion = registry.motions.get(entity);
+							MotionFlag& motion_flag = registry.motionFlags.get(entity);
+							color = vec3(1.f, 0.f, 0.f);
+							motion_flag.follow_mouse = false;
+							motion_flag.alive = false;
+							motion.angle = M_PI / 2.f;
+							motion.velocity = vec2(0.f, 100.f * current_speed);
+							//motion.position += vec2(0.f, 5.f);
+						}
+						break;
+					case(DEADLY_TYPE::EGG):
+						break;
 				}
 			}
 			// Checking Player - Eatable collisions

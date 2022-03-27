@@ -10,10 +10,15 @@ struct Player
 	
 };
 
+enum class DEADLY_TYPE : int {
+	EAGLE = 0,
+	EGG
+};
+
 // Eagles have a hard shell
 struct Deadly
 {
-
+	DEADLY_TYPE type;
 };
 
 // Bug and Chicken have a soft shell
@@ -102,6 +107,12 @@ struct LightUpTimer {
 struct BlowUpTimer 
 {
 	float counter_ms = 300;
+};
+
+// A timer that will be associated with egg spawn
+struct EggTimer
+{
+	float counter_ms = 500;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)

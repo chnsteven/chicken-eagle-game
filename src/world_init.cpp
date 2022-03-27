@@ -72,7 +72,7 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	motion.scale = vec2({ -EAGLE_BB_WIDTH, EAGLE_BB_HEIGHT });
 
 	// Create and (empty) Eagle component to be able to refer to all eagles
-	registry.deadlys.emplace(entity);
+	registry.deadlys.emplace(entity).type = DEADLY_TYPE::EAGLE;
 	registry.blowables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -117,7 +117,7 @@ Entity createEgg(vec2 pos, vec2 size)
 	motion.scale = size;
 
 	// Create and (empty) Chicken component to be able to refer to all eagles
-	registry.deadlys.emplace(entity);
+	registry.deadlys.emplace(entity).type = DEADLY_TYPE::EGG;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
