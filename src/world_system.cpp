@@ -186,15 +186,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Spawning periodic eggs
-	//for (uint i = 0; i < 20; i++) {
-	//	int w, h;
-	//	glfwGetWindowSize(window, &w, &h);
-	//	float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
-	//	Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-	//		{ radius, radius });
-	//	float brightness = uniform_dist(rng) * 0.5 + 0.5;
-	//	registry.colors.insert(egg, { brightness, brightness, brightness });
-	//}
 	next_egg_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (next_egg_spawn < 0.f) {
 		// Reset timer
@@ -206,8 +197,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& motion = registry.motions.get(egg);
 		Motion& player_motion = registry.motions.get(player_chicken);
 		motion.angle = - player_motion.angle + (M_PI/2 * uniform_dist(rng) - M_PI/4);
-		motion.velocity = uniform_dist(rng) * vec2(150.f * cos(motion.angle), 150.f * sin(motion.angle)) +
-			vec2(150.f * cos(motion.angle), 150.f * sin(motion.angle)); // random velocity
+		float speed = 100.f;
+		motion.velocity = uniform_dist(rng) * vec2(speed * cos(motion.angle), speed * sin(motion.angle)) +
+			vec2(speed * cos(motion.angle), speed * sin(motion.angle)); // random velocity
 	}
 
 	if (mode.advance) {

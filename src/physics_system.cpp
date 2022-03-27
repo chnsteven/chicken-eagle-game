@@ -224,14 +224,18 @@ void PhysicsSystem::step(float elapsed_ms)
 	auto& physics_registry = registry.physics;
 	for (uint i = 0; i < physics_registry.size(); i++)
 	{
+		float step_seconds = elapsed_ms / 1000.f;
+		float h = step_seconds; // half a second
 		Physics& physics = physics_registry.components[i];
 		Entity entity = physics_registry.entities[i];
 		Motion& motion = motion_registry.get(entity);
-
-		physics.f = physics.m * physics.g; // Force = mass * gravity
-
-		float step_seconds = elapsed_ms / 1000.f;
-		motion.velocity += physics.f / step_seconds;
-
+		physics.force = physics.mass * physics.gravity;
+		physics.acceleration = physics.force / physics.mass;
+		physics.mid_position = motion.position + 0.5f * h * motion.velocity;
+		physics.mid_velocity = motion.velocity + 0.5f * h * physics.acceleration;	
+		physics.mid_force = physics.mass * (physics.mid_velocity - motion.velocity) / h;
+		physics.mid_acceleration = physics.mid_force / physics.mass;
+		motion.position += h * physics.mid_velocity;
+		motion.velocity += h * physics.mid_acceleration;
 	}
 }

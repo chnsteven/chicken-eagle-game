@@ -66,11 +66,15 @@ struct Motion {
 };
 
 struct Physics {
-	vec2 f; // newtonian force
-	float m; // mass
-	float a; // acceleration
-	vec2 g = { 0.f, 9.8 * 10.E-6 }; // gravity, non-negative because downward acceleration is positive
-							// time in miliseconds, so times a factor of 10^-6
+	vec2 acceleration; // acceleration
+	float mass; // mass
+	vec2 gravity = { 0.f, 980.f/2.f }; // gravity, non-negative because downward acceleration is positive
+	vec2 force;; // newtonian force
+	// implementing Explicit Euler with Midpoint method
+	vec2 mid_position;
+	vec2 mid_velocity;
+	vec2 mid_force;
+	vec2 mid_acceleration;
 };
 
 // Stucture to store collision information
@@ -120,7 +124,7 @@ struct BlowUpTimer
 // A timer that will be associated with egg spawn
 struct EggTimer
 {
-	float counter_ms = 1500;
+	float counter_ms = 500;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)

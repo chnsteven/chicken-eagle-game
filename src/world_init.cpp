@@ -117,7 +117,7 @@ Entity createEgg(vec2 pos, vec2 size)
 	motion.scale = size;
 
 	registry.deadlys.emplace(entity).type = DEADLY_TYPE::EGG;
-	registry.physics.emplace(entity).m = 50; // real world mass of an egg
+	registry.physics.emplace(entity).mass = 50; // real world mass of an egg
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
