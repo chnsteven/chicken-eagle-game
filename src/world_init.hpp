@@ -10,10 +10,12 @@ const float BUG_BB_WIDTH = 0.6f * 165.f;
 const float BUG_BB_HEIGHT = 0.6f * 165.f;
 const float EAGLE_BB_WIDTH = 0.6f * 300.f;
 const float EAGLE_BB_HEIGHT = 0.6f * 202.f;
+const float EAGLE_MASS = 1;
 const float VORTEX_BB_WIDTH = 0.6f * 300.f;
 const float VORTEX_BB_HEIGHT = 0.6f * 300.f;
 const float STONE_BB_WIDTH = 0.6f * 100.f;
 const float STONE_BB_HEIGHT = 0.6f * 100.f;
+const float EGG_MASS = 1000;
 
 // the player
 Entity createChicken(RenderSystem* renderer, vec2 pos);

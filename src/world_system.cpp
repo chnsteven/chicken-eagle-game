@@ -197,7 +197,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& motion = registry.motions.get(egg);
 		Motion& player_motion = registry.motions.get(player_chicken);
 		motion.angle = - player_motion.angle + (M_PI/2 * uniform_dist(rng) - M_PI/4);
-		float speed = 100.f;
+		float speed = 120.f;
 		motion.velocity = uniform_dist(rng) * vec2(speed * cos(motion.angle), speed * sin(motion.angle)) +
 			vec2(speed * cos(motion.angle), speed * sin(motion.angle)); // random velocity
 	}

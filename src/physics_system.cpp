@@ -27,6 +27,35 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+//bool collides(const Motion& motion1, const Motion& motion2)
+//{
+//	vec2 dp = motion1.position - motion2.position;
+//	float dist_squared = dot(dp, dp);
+//	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
+//	const float other_radius = dot(other_bonding_box, other_bonding_box);
+//	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
+//	const float my_radius = dot(my_bonding_box, my_bonding_box);
+//	return dist_squared < my_radius + other_radius;
+//}
+
+void collision_impulses(Entity i, Entity j) {
+	Physics& physics_i = registry.physics.get(i);
+	Physics& physics_j = registry.physics.get(j);
+	Motion& motion_i = registry.motions.get(i);
+	Motion& motion_j = registry.motions.get(j);
+	vec2 v1 = motion_i.velocity;
+	vec2 v2 = motion_j.velocity;
+	vec2 p1 = motion_i.position;
+	vec2 p2 = motion_j.position;
+	float m1 = physics_i.mass;
+	float m2 = physics_j.mass;
+	motion_i.velocity = v1 - (2 * m2 / (m1 + m2)) *
+		((v1 - v2) * (p1 - p2) / pow(dot(p1 - p2, p1 - p2), 2.f)) * (p1 - p2);
+	motion_j.velocity = v2 - (2 * m1 / (m1 + m2)) *
+		((v2 - v1) * (p2 - p1) / pow(dot(p2 - p1, p2 - p1), 2.f)) * (p2 - p1);
+	//printf("Collision response: motion i new vel: (%f, %f), motion j new vel: (%f, %f)\n", motion_i.velocity.x, motion_i.velocity.y, motion_j.velocity.x, motion_j.velocity.y);
+}
+
 void PhysicsSystem::debug() {
 	ComponentContainer<Motion>& motion_container = registry.motions;
 	Entity chicken = registry.players.entities[0]; // assumed there's only 1 chicken, if multiple, needs an alternative
@@ -74,6 +103,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	// Move bug based on how much time has passed, this is to (partially) avoid
 	// having entities move at different speed based on the machine.
 	auto& motion_registry = registry.motions;
+	auto& physics_registry = registry.physics;
 	for (uint i = 0; i < motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
@@ -114,7 +144,6 @@ void PhysicsSystem::step(float elapsed_ms)
 	// TODO A3: HANDLE EGG UPDATES HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	// Check for collisions between all moving entities
 	ComponentContainer<Motion>& motion_container = registry.motions;
 	for (uint i = 0; i < motion_container.components.size(); i++)
@@ -128,7 +157,13 @@ void PhysicsSystem::step(float elapsed_ms)
 			Motion& motion_j = motion_container.components[j];
 			if (collides(motion_i, motion_j))
 			{
+				
 				Entity entity_j = motion_container.entities[j];
+				// Create a collisions response
+				if (registry.physics.has(entity_i) && registry.physics.has(entity_j)) {
+					collision_impulses(entity_i, entity_j);
+
+				}
 				// Create a collisions event
 				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
@@ -221,13 +256,12 @@ void PhysicsSystem::step(float elapsed_ms)
 	// TODO A3: HANDLE EGG collisions HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	auto& physics_registry = registry.physics;
 	for (uint i = 0; i < physics_registry.size(); i++)
 	{
-		float step_seconds = elapsed_ms / 1000.f;
-		float h = step_seconds; // half a second
-		Physics& physics = physics_registry.components[i];
+		float h = elapsed_ms / 1000.f;
 		Entity entity = physics_registry.entities[i];
+		if (registry.deadlys.get(entity).type == DEADLY_TYPE::EAGLE) continue;
+		Physics& physics = physics_registry.components[i];
 		Motion& motion = motion_registry.get(entity);
 		physics.force = physics.mass * physics.gravity;
 		physics.acceleration = physics.force / physics.mass;
