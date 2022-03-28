@@ -38,24 +38,6 @@ bool collides(const Motion& motion1, const Motion& motion2)
 //	return dist_squared < my_radius + other_radius;
 //}
 
-void collision_impulses(Entity i, Entity j) {
-	Physics& physics_i = registry.physics.get(i);
-	Physics& physics_j = registry.physics.get(j);
-	Motion& motion_i = registry.motions.get(i);
-	Motion& motion_j = registry.motions.get(j);
-	vec2 v1 = motion_i.velocity;
-	vec2 v2 = motion_j.velocity;
-	vec2 p1 = motion_i.position;
-	vec2 p2 = motion_j.position;
-	float m1 = physics_i.mass;
-	float m2 = physics_j.mass;
-	motion_i.velocity = v1 - (2 * m2 / (m1 + m2)) *
-		((v1 - v2) * (p1 - p2) / pow(dot(p1 - p2, p1 - p2), 2.f)) * (p1 - p2);
-	motion_j.velocity = v2 - (2 * m1 / (m1 + m2)) *
-		((v2 - v1) * (p2 - p1) / pow(dot(p2 - p1, p2 - p1), 2.f)) * (p2 - p1);
-	//printf("Collision response: motion i new vel: (%f, %f), motion j new vel: (%f, %f)\n", motion_i.velocity.x, motion_i.velocity.y, motion_j.velocity.x, motion_j.velocity.y);
-}
-
 void PhysicsSystem::debug() {
 	ComponentContainer<Motion>& motion_container = registry.motions;
 	Entity chicken = registry.players.entities[0]; // assumed there's only 1 chicken, if multiple, needs an alternative
@@ -159,11 +141,6 @@ void PhysicsSystem::step(float elapsed_ms)
 			{
 				
 				Entity entity_j = motion_container.entities[j];
-				// Create a collisions response
-				if (registry.physics.has(entity_i) && registry.physics.has(entity_j)) {
-					collision_impulses(entity_i, entity_j);
-
-				}
 				// Create a collisions event
 				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);

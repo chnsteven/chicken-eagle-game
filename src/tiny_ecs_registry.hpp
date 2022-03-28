@@ -31,6 +31,7 @@ public:
 	ComponentContainer<BlowUpTimer> blowUpTimers;
 	ComponentContainer<EggTimer> eggTimers;
 	ComponentContainer<Physics> physics;
+	ComponentContainer<CollisionTimer> collisionTimers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -55,6 +56,7 @@ public:
 		registry_list.push_back(&blowUpTimers);
 		registry_list.push_back(&eggTimers);
 		registry_list.push_back(&physics);
+		registry_list.push_back(&collisionTimers);
 	}
 
 	void clear_all_components() {

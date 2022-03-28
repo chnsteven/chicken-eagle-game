@@ -21,12 +21,14 @@ const size_t EAGLE_DELAY_MS = 9000;
 const size_t BUG_DELAY_MS = 15000;
 const size_t VORTEX_DELAY_MS = 9000;
 const size_t STONE_DELAY_MS = 6000;
-const size_t EGG_DELAY_MS = 150;
+const size_t EGG_DELAY_MS = 300;
 
 struct Mode 
 {
 	bool advance = false;
 } mode;
+
+
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -185,23 +187,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			-100.f), uniform_dist(rng) * 100.f + 50.f); // random speed 50.f - 150.f
 	}
 
-	// Spawning periodic eggs
-	next_egg_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_egg_spawn < 0.f) {
-		// Reset timer
-		next_egg_spawn = (EGG_DELAY_MS / 2) + uniform_dist(rng) * (EGG_DELAY_MS / 2);
-		// Create egg with random velocity and scale
-		float radius = 20 * (uniform_dist(rng) + 0.3f); // range 0.6 .. 2.6
-		Entity egg = createEgg(registry.motions.get(player_chicken).position, {radius, radius}); // random speed 50.f - 150.f
-		registry.eggTimers.emplace(egg);
-		Motion& motion = registry.motions.get(egg);
-		Motion& player_motion = registry.motions.get(player_chicken);
-		motion.angle = - player_motion.angle + (M_PI/2 * uniform_dist(rng) - M_PI/4);
-		float speed = 120.f;
-		motion.velocity = uniform_dist(rng) * vec2(speed * cos(motion.angle), speed * sin(motion.angle)) +
-			vec2(speed * cos(motion.angle), speed * sin(motion.angle)); // random velocity
-	}
-
 	if (mode.advance) {
 		// Spawning new vortices
 		next_vortex_spawn -= elapsed_ms_since_last_update * current_speed;
@@ -231,6 +216,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// TODO A3: HANDLE EGG SPAWN HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Spawning periodic eggs
+	next_egg_spawn -= elapsed_ms_since_last_update * current_speed;
+	if (registry.deadlys.components.size() < MAX_EGG && next_egg_spawn < 0.f) {
+		// Reset timer
+		next_egg_spawn = (EGG_DELAY_MS / 2) + uniform_dist(rng) * (EGG_DELAY_MS / 2);
+		// Create egg with random velocity and scale
+		float radius = 20.f * (uniform_dist(rng)+0.5f); 
+		Entity egg = createEgg(registry.motions.get(player_chicken).position, { radius, radius }); 
+		
+		Motion& motion = registry.motions.get(egg);
+		Motion& player_motion = registry.motions.get(player_chicken);
+		motion.angle = - player_motion.angle + (M_PI/4 * uniform_dist(rng) - M_PI/8);
+		float speed = 100.f;
+		vec2 vector = vec2(cos(motion.angle), sin(motion.angle));
+		motion.velocity = speed * (uniform_dist(rng) * vector + vector); // random velocity
+		registry.eggTimers.emplace(egg); // determines how long egg can live
+		registry.collisionTimers.emplace(egg); // avoid colliding with other eggs on spawn
+	}
 
 	// Processing the chicken state
 	assert(registry.screenStates.components.size() <= 1);
@@ -298,7 +301,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			light_up.light_up = 0;
 		}
 	}
-
+	// Remove eggs if eggs spawned for certain amount of time
 	for (Entity entity : registry.eggTimers.entities) {
 		// progress timer
 		EggTimer& counter = registry.eggTimers.get(entity);
@@ -306,6 +309,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (counter.counter_ms < 0) {
 			registry.remove_all_components_of(entity);
+		}
+	}
+	// Avoid checking for collision for certain amount of time
+	for (Entity entity : registry.collisionTimers.entities) {
+		// progress timer
+		CollisionTimer& counter = registry.collisionTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		if (counter.counter_ms < 0) {
+			registry.collisionTimers.remove(entity);
 		}
 	}
 
@@ -319,7 +332,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			if (counter.counter_ms < 0) {
 				if (registry.motionFlags.has(entity)) {
-					MotionFlag& motion_flag = registry.motionFlags.get(entity);
 					motion_flag.dragged = false;
 				}
 				registry.blowUpTimers.remove(entity);
@@ -367,6 +379,15 @@ void WorldSystem::restart_game() {
 	
 }
 
+void pp_collisions(Entity i, Entity j) {
+	vec2 v1 = registry.motions.get(i).velocity;
+	vec2 v2 = registry.motions.get(j).velocity;
+	float m1 = registry.physics.get(i).mass;
+	float m2 = registry.physics.get(j).mass;
+	registry.motions.get(i).velocity =  (m1 - m2) / (m1 + m2) * v1 + 2 * m2 / (m1 + m2) * v2;
+	registry.motions.get(j).velocity = -(m1 - m2) / (m1 + m2) * v2 + 2 * m1 / (m1 + m2) * v1;
+}
+
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
@@ -399,7 +420,6 @@ void WorldSystem::handle_collisions() {
 							motion_flag.alive = false;
 							motion.angle = M_PI / 2.f;
 							motion.velocity = vec2(0.f, 100.f * current_speed);
-							//motion.position += vec2(0.f, 5.f);
 						}
 						break;
 					case(DEADLY_TYPE::EGG):
@@ -418,6 +438,27 @@ void WorldSystem::handle_collisions() {
 					registry.lightUpTimers.emplace(entity);
 					LightUp& light_up = registry.lightUps.get(entity);
 					light_up.light_up = 1;
+				}
+			}
+		}
+		// Collision involving egg
+		if (registry.deadlys.has(entity) && registry.deadlys.get(entity).type == DEADLY_TYPE::EGG) {
+			if (registry.deadlys.has(entity_other)) {
+				
+				if (registry.collisionTimers.has(entity)) continue;
+				switch (registry.deadlys.get(entity_other).type) {
+				// Checking Egg - Eagle collisions
+				case(DEADLY_TYPE::EAGLE):
+					// avoid eagle/egg from having multiple collisions with same egg in short time interval
+				    // this introduces a timer that allow entity to avoid collision when timer is present
+					if (!registry.collisionTimers.has(entity)) registry.collisionTimers.emplace(entity);
+					if (!registry.collisionTimers.has(entity_other)) registry.collisionTimers.emplace(entity_other);
+					pp_collisions(entity, entity_other);
+					break;
+				// Checking Egg - Egg collisions
+				case(DEADLY_TYPE::EGG):
+					pp_collisions(entity, entity_other);
+					break;
 				}
 			}
 		}
@@ -510,7 +551,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// handle chicken movement
 	MotionFlag& motion_flag = registry.motionFlags.get(player_chicken);
-	Motion& motion = registry.motions.get(player_chicken);
 
 	if (motion_flag.alive && !motion_flag.dragged) {
 		if (action == GLFW_PRESS ) {

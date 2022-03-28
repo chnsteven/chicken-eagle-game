@@ -63,7 +63,7 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 100.f };
+	motion.velocity = { 0.f , 100.f };
 	motion.position = position;
 	
 
