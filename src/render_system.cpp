@@ -186,6 +186,11 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
+bool sort_by_depth(Entity i, Entity j) {
+	if (!registry.depths.has(i) || !registry.depths.has(j)) return true;
+	return registry.depths.get(i).w < registry.depths.get(j).w;
+}
+
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
@@ -211,6 +216,7 @@ void RenderSystem::draw()
 	gl_has_errors();
 	mat3 projection_2D = createProjectionMatrix();
 	// Draw all textured meshes that have a position and size component
+	registry.renderRequests.sort(sort_by_depth);
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (!registry.motions.has(entity))
@@ -221,11 +227,13 @@ void RenderSystem::draw()
 	}
 
 	// Truely render to the screen
+
 	drawToScreen();
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+
 }
 
 mat3 RenderSystem::createProjectionMatrix()

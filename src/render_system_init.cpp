@@ -173,7 +173,7 @@ void RenderSystem::initializeGlGeometryBuffers()
 	for (int i = 0; i < NUM_TRIANGLES; i++) {
 		const float t = float(i) * M_PI * 2.f / float(NUM_TRIANGLES - 1);
 		egg_vertices.push_back({});
-		egg_vertices.back().position = { 0.5 * cos(t), 0.5 * sin(t), z };
+		egg_vertices.back().position = { 0.5 * cos(t), 0.65 * sin(t), z };
 		egg_vertices.back().color = { 0.8, 0.8, 0.8 };
 	}
 	egg_vertices.push_back({});

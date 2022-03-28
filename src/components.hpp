@@ -10,6 +10,12 @@ struct Player
 	
 };
 
+struct Depth
+{
+	// [0.00001, 10]
+	float w = 0.00001;
+};
+
 enum class DEADLY_TYPE : int {
 	EAGLE = 0,
 	EGG
