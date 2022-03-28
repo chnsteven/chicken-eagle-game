@@ -12,7 +12,7 @@
 #include "physics_system.hpp"
 
 // Game configuration
-const size_t MAX_EAGLES = 0;
+const size_t MAX_EAGLES = 1;
 const size_t MAX_BUG = 5;
 const size_t MAX_VORTEX = 1;
 const size_t MAX_STONE = 10;
@@ -22,13 +22,6 @@ const size_t BUG_DELAY_MS = 15000;
 const size_t VORTEX_DELAY_MS = 9000;
 const size_t STONE_DELAY_MS = 6000;
 const size_t EGG_DELAY_MS = 300;
-
-struct Mode 
-{
-	bool advance = false;
-} mode;
-
-
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -144,6 +137,8 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	
+	// GameState
+	GameState mode;
 	// Updating window title with points
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
@@ -221,16 +216,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (registry.deadlys.components.size() < MAX_EGG && next_egg_spawn < 0.f) {
 		// Reset timer
 		next_egg_spawn = (EGG_DELAY_MS / 2) + uniform_dist(rng) * (EGG_DELAY_MS / 2);
-		// Create egg with random velocity and scale
+		// Create egg with random velocity, scale, orientation, angle
 		float radius = 20.f * (uniform_dist(rng)+0.5f); 
 		Entity egg = createEgg(registry.motions.get(player_chicken).position, { radius, radius }); 
-		
 		Motion& motion = registry.motions.get(egg);
 		Motion& player_motion = registry.motions.get(player_chicken);
-		motion.angle = - player_motion.angle + (M_PI/4 * uniform_dist(rng) - M_PI/8);
+		float cone_range = - player_motion.angle + (M_PI/4 * uniform_dist(rng) - M_PI/8); // random direction
 		float speed = 100.f;
-		vec2 vector = vec2(cos(motion.angle), sin(motion.angle));
+		vec2 vector = vec2(cos(cone_range), sin(cone_range));
 		motion.velocity = speed * (uniform_dist(rng) * vector + vector); // random velocity
+
+		if (mode.advance) motion.angle = uniform_dist(rng) * 2 * M_PI; // random orientation
+
 		registry.eggTimers.emplace(egg); // determines how long egg can live
 		registry.collisionTimers.emplace(egg); // avoid colliding with other eggs on spawn
 	}
@@ -390,6 +387,7 @@ void pp_collisions(Entity i, Entity j) {
 
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
+	GameState mode;
 	// Loop over all collisions detected by the physics system
 	auto& collisionsRegistry = registry.collisions; // TODO: @Tim, is the reference here needed?
 	for (uint i = 0; i < collisionsRegistry.components.size(); i++) {
@@ -506,6 +504,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+	GameState mode;
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -607,5 +606,4 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 		motion.angle = atan2(mouse_position.y - motion.position.y,
 			motion.position.x - mouse_position.x);
 	}
-	//(vec2)mouse_position; // dummy to avoid compiler warning
 }

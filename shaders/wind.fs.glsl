@@ -13,24 +13,24 @@ vec2 distort(vec2 uv)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A1: HANDLE THE WIND DISTORTION HERE (you may want to try sin/cos)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//	float a = 0.05;
-//	float dx = cos(5*uv.y + 0.1 * time) * a;
-//	float dy = cos(5*uv.x + 0.1 * time) * a;
-//
-//	if (uv.x > 0.5) {
-//		dx *= 1-uv.x;
-//	} 
-//	else if (uv.x < 0.5) {
-//		dx *= uv.x;
-//	}
-//	if (uv.y > 0.5) {
-//		dy *= 1-uv.y;
-//	} 
-//	else if (uv.y < 0.5) {
-//		dy *= uv.y;
-//	}
-//	uv.x += dx;
-//	uv.y += dy;
+	float a = 0.05;
+	float dx = cos(5*uv.y + 0.1 * time) * a;
+	float dy = cos(5*uv.x + 0.1 * time) * a;
+
+	if (uv.x > 0.5) {
+		dx *= 1-uv.x;
+	} 
+	else if (uv.x < 0.5) {
+		dx *= uv.x;
+	}
+	if (uv.y > 0.5) {
+		dy *= 1-uv.y;
+	} 
+	else if (uv.y < 0.5) {
+		dy *= uv.y;
+	}
+	uv.x += dx;
+	uv.y += dy;
 	return uv;
 }
 

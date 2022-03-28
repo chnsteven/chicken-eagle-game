@@ -18,9 +18,9 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 
 	registry.lightUps.emplace(entity);
 	registry.motionFlags.emplace(entity);
-	// Create and (empty) Chicken component to be able to refer to all eagles
 	registry.players.emplace(entity);
 	registry.blowables.emplace(entity);
+	registry.depths.emplace(entity).w = 10.f;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
@@ -47,6 +47,7 @@ Entity createBug(RenderSystem* renderer, vec2 position, float random_speed)
 	// Create an (empty) Bug component to be able to refer to all bug
 	registry.eatables.emplace(entity);
 	registry.blowables.emplace(entity);
+	registry.depths.emplace(entity).w = 10.f;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::BUG,
@@ -76,6 +77,7 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	registry.physics.emplace(entity).mass = EAGLE_MASS;
 	registry.physics_laws.emplace(entity).obey_gravity = false;
 	registry.blowables.emplace(entity);
+	registry.depths.emplace(entity).w = 1.f;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::EAGLE,
@@ -104,6 +106,7 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
+	registry.depths.emplace(entity).w = 10.f;
 	return entity;
 }
 
@@ -121,6 +124,7 @@ Entity createEgg(vec2 pos, vec2 size)
 	registry.deadlys.emplace(entity).type = DEADLY_TYPE::EGG;
 	registry.physics.emplace(entity).mass = EGG_MASS;
 	registry.physics_laws.emplace(entity);
+	registry.depths.emplace(entity).w = 5.f;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed

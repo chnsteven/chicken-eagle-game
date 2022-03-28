@@ -29,6 +29,7 @@ public:
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<vec3> colors;
 	ComponentContainer<ScreenState> screenStates;
+	ComponentContainer<Depth> depths;
 	// Players/Characters
 	ComponentContainer<Eatable> eatables;
 	ComponentContainer<Deadly> deadlys;
@@ -68,6 +69,7 @@ public:
 		registry_list.push_back(&physics);
 		registry_list.push_back(&collisionTimers);
 		registry_list.push_back(&physics_laws);
+		registry_list.push_back(&depths);
 	}
 
 	void clear_all_components() {

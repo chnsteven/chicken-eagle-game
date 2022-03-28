@@ -13,30 +13,30 @@ vec2 get_bounding_box(const Motion& motion)
 // This is a SUPER APPROXIMATE check that puts a circle around the bounding boxes and sees
 // if the center point of either object is inside the other's bounding-box-circle. You can
 // surely implement a more accurate detection
-bool collides(const Motion& motion1, const Motion& motion2)
-{
-	vec2 dp = motion1.position - motion2.position;
-	float dist_squared = dot(dp,dp);
-	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
-	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
-	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
-	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
-	const float r_squared = max(other_r_squared, my_r_squared);
-	if (dist_squared < r_squared)
-		return true;
-	return false;
-}
-
 //bool collides(const Motion& motion1, const Motion& motion2)
 //{
 //	vec2 dp = motion1.position - motion2.position;
-//	float dist_squared = dot(dp, dp);
+//	float dist_squared = dot(dp,dp);
 //	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
-//	const float other_radius = dot(other_bonding_box, other_bonding_box);
+//	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
 //	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
-//	const float my_radius = dot(my_bonding_box, my_bonding_box);
-//	return dist_squared < my_radius + other_radius;
+//	const float my_r_squared = dot(my_bonding_box, my_bonding_box);
+//	const float r_squared = max(other_r_squared, my_r_squared);
+//	if (dist_squared < r_squared)
+//		return true;
+//	return false;
 //}
+
+bool collides(const Motion& motion1, const Motion& motion2)
+{
+	vec2 a_bb = get_bounding_box(motion1) / 2.f;
+	vec2 b_bb = get_bounding_box(motion2) / 2.f;
+	vec2 a_lo = vec2(motion1.position.x - a_bb.x, motion1.position.y + a_bb.y);
+	vec2 b_lo = vec2(motion2.position.x - b_bb.x, motion2.position.y + b_bb.y);
+	vec2 a_hi = vec2(motion1.position.x + a_bb.x, motion1.position.y - a_bb.y);
+	vec2 b_hi = vec2(motion2.position.x + b_bb.x, motion2.position.y - b_bb.y);
+	return (a_lo.x <= b_hi.x) && (a_lo.y >= b_hi.y) && (a_hi.x >= b_lo.x) && (a_hi.y <= b_lo.y);
+}
 
 void PhysicsSystem::debug() {
 	ComponentContainer<Motion>& motion_container = registry.motions;

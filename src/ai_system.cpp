@@ -72,6 +72,7 @@ void AISystem::step(float elapsed_ms)
 	// You will likely want to write new functions and need to create
 	// new data structures to implement a more sophisticated Bug AI.
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	GameState mode;
 	Entity chicken = registry.players.entities[0];
 	Motion& chicken_motion = registry.motions.get(chicken);
 	
@@ -86,14 +87,17 @@ void AISystem::step(float elapsed_ms)
 	}
 
 	//// loop over entities with deadly component, namely eagle
-	//for (Entity entity : registry.deadlys.entities) {
-	//	// skip the entity that doesn't have motion component
-	//	if (!registry.motions.has(entity))
-	//		continue;
-	//	Motion& eagle_motion = registry.motions.get(entity);
-	//	// detection area is a box with epsilon width and height
-	//	eagleDT(eagle_motion, chicken_motion, uniform_dist(rng) * registry.eatables.size());
+	//if (mode.advance) {
+	//	for (Entity entity : registry.deadlys.entities) {
+	//		// skip the entity that doesn't have motion component
+	//		if (!registry.motions.has(entity) || registry.deadlys.get(entity).type == DEADLY_TYPE::EGG)
+	//			continue;
+	//		Motion& eagle_motion = registry.motions.get(entity);
+	//		// detection area is a box with epsilon width and height
+	//		eagleDT(eagle_motion, chicken_motion, uniform_dist(rng) * registry.eatables.size());
+	//	}
 	//}
+		
 
 
 	(void)elapsed_ms; // placeholder to silence unused warning until implemented
@@ -135,10 +139,12 @@ void AISystem::bugDT(Motion& bug, Motion& chicken) {
 }
 
 void AISystem::eagleDT(Motion& eagle, Motion& chicken, float random_float) {
+	printf("Eagle doing something\n");
 	// detection area is a box with epsilon width and height
 	// attempt to find the closest bug around the eagle, if found, move in opposite direction.
 	// if not found and if chicken is in eagle's range, chase the chicken
 	if (registry.eatables.size() > 0) {
+		
 		float weight = 0.75;
 		float default_speed = 200.f;
 		int random_index = (int) random_float;
@@ -149,8 +155,6 @@ void AISystem::eagleDT(Motion& eagle, Motion& chicken, float random_float) {
 		vec2 direction_vector_to_random_eatable = normalize(eagle.position - random_eatable_motion.position);
 		vec2 direction_vector_to_chicken = -normalize(eagle.position - chicken_motion.position);
 		vec2 direction_vector;
-		//vec2 distance = cal_distance(eagle, chicken);
-		//float dist = sqrt(dot(distance.x, distance.y));
 		if (in_eagle_range(eagle, random_eatable_motion) && in_eagle_range(eagle, random_eatable_motion)) {
 			direction_vector = weight * direction_vector_to_chicken + (1 - weight) * direction_vector_to_random_eatable;
 			eagle.velocity = normalize(direction_vector) * default_speed;
