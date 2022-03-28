@@ -65,6 +65,7 @@ struct Motion {
 	vec2 scale = { 10, 10 };
 };
 
+// Particle System
 struct Physics {
 	vec2 acceleration; // acceleration
 	float mass; // mass
@@ -75,6 +76,11 @@ struct Physics {
 	vec2 mid_velocity;
 	vec2 mid_force;
 	vec2 mid_acceleration;
+};
+// Whether particle obeys certain Physics laws
+struct Physics_Law {
+	bool obey_gravity = true;
+	bool obey_collision = true;
 };
 
 // Stucture to store collision information

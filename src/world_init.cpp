@@ -74,6 +74,7 @@ Entity createEagle(RenderSystem* renderer, vec2 position)
 	// Create and (empty) Eagle component to be able to refer to all eagles
 	registry.deadlys.emplace(entity).type = DEADLY_TYPE::EAGLE;
 	registry.physics.emplace(entity).mass = EAGLE_MASS;
+	registry.physics_laws.emplace(entity).obey_gravity = false;
 	registry.blowables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -119,6 +120,7 @@ Entity createEgg(vec2 pos, vec2 size)
 
 	registry.deadlys.emplace(entity).type = DEADLY_TYPE::EGG;
 	registry.physics.emplace(entity).mass = EGG_MASS;
+	registry.physics_laws.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed

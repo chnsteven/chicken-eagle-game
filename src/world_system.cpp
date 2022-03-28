@@ -422,6 +422,7 @@ void WorldSystem::handle_collisions() {
 							motion.velocity = vec2(0.f, 100.f * current_speed);
 						}
 						break;
+					// does not die from Player's own projectiles
 					case(DEADLY_TYPE::EGG):
 						break;
 				}
@@ -443,9 +444,10 @@ void WorldSystem::handle_collisions() {
 		}
 		// Collision involving egg
 		if (registry.deadlys.has(entity) && registry.deadlys.get(entity).type == DEADLY_TYPE::EGG) {
+			// Egg-Deadlys collisions
 			if (registry.deadlys.has(entity_other)) {
-				
 				if (registry.collisionTimers.has(entity)) continue;
+				if (!registry.physics_laws.has(entity_other) || !registry.physics_laws.get(entity_other).obey_collision) continue;
 				switch (registry.deadlys.get(entity_other).type) {
 				// Checking Egg - Eagle collisions
 				case(DEADLY_TYPE::EAGLE):
@@ -460,6 +462,11 @@ void WorldSystem::handle_collisions() {
 					pp_collisions(entity, entity_other);
 					break;
 				}
+			}
+			// Egg-Others collisions
+			else {
+				if (!registry.physics_laws.has(entity_other) || !registry.physics_laws.get(entity_other).obey_collision) continue;
+				pp_collisions(entity, entity_other);
 			}
 		}
 		if (mode.advance) {

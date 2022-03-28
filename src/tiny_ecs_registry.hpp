@@ -12,26 +12,36 @@ class ECSRegistry
 public:
 	// Manually created list of all components this game has
 	// TODO: A1 add a LightUp component
+	// Timers
 	ComponentContainer<DeathTimer> deathTimers;
-	ComponentContainer<Motion> motions;
-	ComponentContainer<Collision> collisions;
-	ComponentContainer<Player> players;
-	ComponentContainer<Mesh*> meshPtrs;
-	ComponentContainer<RenderRequest> renderRequests;
-	ComponentContainer<ScreenState> screenStates;
-	ComponentContainer<Eatable> eatables;
-	ComponentContainer<Deadly> deadlys;
-	ComponentContainer<DebugComponent> debugComponents;
-	ComponentContainer<vec3> colors;
-	ComponentContainer<LightUp> lightUps;
 	ComponentContainer<LightUpTimer> lightUpTimers;
-	ComponentContainer<MotionFlag> motionFlags;
-	ComponentContainer<Blowable> blowables;
-	ComponentContainer<Blower> blowers;
 	ComponentContainer<BlowUpTimer> blowUpTimers;
 	ComponentContainer<EggTimer> eggTimers;
-	ComponentContainer<Physics> physics;
 	ComponentContainer<CollisionTimer> collisionTimers;
+	// Motions/Collisions/Physics
+	ComponentContainer<Motion> motions;
+	ComponentContainer<MotionFlag> motionFlags;
+	ComponentContainer<Collision> collisions;
+	ComponentContainer<Physics> physics;
+	ComponentContainer<Physics_Law> physics_laws;
+	// Rendering
+	ComponentContainer<Mesh*> meshPtrs;
+	ComponentContainer<RenderRequest> renderRequests;
+	ComponentContainer<vec3> colors;
+	ComponentContainer<ScreenState> screenStates;
+	// Players/Characters
+	ComponentContainer<Eatable> eatables;
+	ComponentContainer<Deadly> deadlys;
+	ComponentContainer<Player> players;
+	// Debug
+	ComponentContainer<DebugComponent> debugComponents;
+	ComponentContainer<LightUp> lightUps;
+	// Unclassified
+	ComponentContainer<Blowable> blowables;
+	ComponentContainer<Blower> blowers;
+	
+
+	
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -57,6 +67,7 @@ public:
 		registry_list.push_back(&eggTimers);
 		registry_list.push_back(&physics);
 		registry_list.push_back(&collisionTimers);
+		registry_list.push_back(&physics_laws);
 	}
 
 	void clear_all_components() {

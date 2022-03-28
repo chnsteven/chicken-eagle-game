@@ -237,7 +237,7 @@ void PhysicsSystem::step(float elapsed_ms)
 	{
 		float h = elapsed_ms / 1000.f;
 		Entity entity = physics_registry.entities[i];
-		if (registry.deadlys.get(entity).type == DEADLY_TYPE::EAGLE) continue;
+		if (!registry.physics_laws.has(entity) || !registry.physics_laws.get(entity).obey_gravity) continue;
 		Physics& physics = physics_registry.components[i];
 		Motion& motion = motion_registry.get(entity);
 		physics.force = physics.mass * physics.gravity;
