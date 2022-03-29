@@ -45,9 +45,9 @@ bool detailed_check(const Motion& motion1, const Motion& motion2) {
 	float a_radius = max(a_bb.x, a_bb.y);
 	vec2 b_bb = get_bounding_box(motion2) / 2.f;
 	float b_radius = max(b_bb.x, b_bb.y);
-	vec2 diff = abs(motion1.position - motion2.position);
+	vec2 diff = motion1.position - motion2.position;
 	float dist = dot(diff, diff);
-	return dist <= a_radius + b_radius;
+	return dist <= (a_radius + b_radius);
 }
 
 void PhysicsSystem::debug() {
@@ -153,17 +153,22 @@ void PhysicsSystem::step(float elapsed_ms)
 			{
 				
 				Entity entity_j = motion_container.entities[j];
-				if (registry.deadlys.has(entity_i) && registry.deadlys.has(entity_j)) {
-					if (registry.deadlys.get(entity_i).type == DEADLY_TYPE::EGG &&
-						registry.deadlys.get(entity_j).type == DEADLY_TYPE::EGG) {
-						detailed_check(motion_i, motion_j);
+				if (registry.deadlys.has(entity_i) && registry.deadlys.has(entity_j) &&
+					registry.deadlys.get(entity_i).type == DEADLY_TYPE::EGG &&
+					registry.deadlys.get(entity_j).type == DEADLY_TYPE::EGG) {
+					if (detailed_check(motion_i, motion_j)) {
+						registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+						registry.collisions.emplace_with_duplicates(entity_j, entity_i);
 					}
+
+				}
+				else {
+					// Create a collisions event
+				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
+					registry.collisions.emplace_with_duplicates(entity_i, entity_j);
+					registry.collisions.emplace_with_duplicates(entity_j, entity_i);
 				}
 				
-				// Create a collisions event
-				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
-				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
-				registry.collisions.emplace_with_duplicates(entity_j, entity_i);
 			}
 		}
 	}

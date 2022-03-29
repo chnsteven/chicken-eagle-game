@@ -7,6 +7,7 @@ Basic features:
 Changed `SUPER APPROXIMATE` to AABB collision detection.
 
 Advance features:
+
 Turn eggs into ellipses and have more precise collision detection.
 
 `detailed_check` in `physics_system.cpp`
@@ -16,5 +17,3 @@ Disintegrate effect of chicken dying
 
 `disintegrate` in `world_system_cpp`
 In summary, instead of having chicken turn red, point downward and free fall, chicken now disappears upon dying and create particles at chicken meshes positions. The particles jump up a little and then followed by a fall (like Mario dying).
-Advance:
-Turn eggs into ellipses and have correct collision detection.
