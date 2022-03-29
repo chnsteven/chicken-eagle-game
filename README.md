@@ -3,11 +3,12 @@
 ### Name: Steven Chen
 ### Student number: 82507526
 
-<<<<<<< HEAD
 Basic features:
+
 Changed `SUPER APPROXIMATE` to AABB collision detection.
 
 Advance features:
+
 Turn eggs into ellipses and have more precise collision detection.
 
 `detailed_check` in `physics_system.cpp`
