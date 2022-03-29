@@ -20,7 +20,11 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	registry.motionFlags.emplace(entity);
 	registry.players.emplace(entity);
 	registry.blowables.emplace(entity);
-	registry.depths.emplace(entity).w = 10.f;
+	registry.depths.emplace(entity).w = 9.f;
+	Physics& physics = registry.physics.emplace(entity);
+	physics.mass = CHICKEN_MASS; physics.gravity = { 0.f, 500.f };
+	Physics_Law& physics_law = registry.physics_laws.emplace(entity);
+	physics_law.obey_collision = false; physics_law.obey_gravity = false;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
@@ -130,6 +134,32 @@ Entity createEgg(vec2 pos, vec2 size)
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::EGG,
 			GEOMETRY_BUFFER_ID::EGG });
+
+	return entity;
+}
+
+Entity createParticle(vec2 pos, vec2 size)
+{
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f , -100.f };
+	motion.scale = size;
+
+	Physics& physics = registry.physics.emplace(entity);
+	physics.mass = PARTICLE_MASS; physics.gravity = {0.f, 500.f};
+	Physics_Law& physics_law = registry.physics_laws.emplace(entity);
+	physics_law.obey_collision = false; physics_law.obey_gravity = true;
+	registry.depths.emplace(entity).w = 10.f;
+	registry.particleTimers.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::EGG,
+			GEOMETRY_BUFFER_ID::PARTICLE });
 
 	return entity;
 }

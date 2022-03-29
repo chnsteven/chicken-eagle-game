@@ -17,11 +17,12 @@ const size_t MAX_BUG = 5;
 const size_t MAX_VORTEX = 1;
 const size_t MAX_STONE = 10;
 const size_t MAX_EGG = 10;
-const size_t EAGLE_DELAY_MS = 9000;
-const size_t BUG_DELAY_MS = 15000;
+const size_t EAGLE_DELAY_MS = 2000;
+const size_t BUG_DELAY_MS = 9000;
 const size_t VORTEX_DELAY_MS = 9000;
 const size_t STONE_DELAY_MS = 6000;
 const size_t EGG_DELAY_MS = 300;
+const size_t EGG_SPEED = 120;
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -213,7 +214,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// Spawning periodic eggs
 	next_egg_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.deadlys.components.size() < MAX_EGG && next_egg_spawn < 0.f) {
+	if (registry.deadlys.components.size() < MAX_EGG && next_egg_spawn < 0.f && 
+		registry.motionFlags.get(player_chicken).alive) {
 		// Reset timer
 		next_egg_spawn = (EGG_DELAY_MS / 2) + uniform_dist(rng) * (EGG_DELAY_MS / 2);
 		// Create egg with random velocity, scale, orientation, angle
@@ -222,11 +224,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& motion = registry.motions.get(egg);
 		Motion& player_motion = registry.motions.get(player_chicken);
 		float cone_range = - player_motion.angle + (M_PI/4 * uniform_dist(rng) - M_PI/8); // random direction
-		float speed = 100.f;
+		float speed = EGG_SPEED;
 		vec2 vector = vec2(cos(cone_range), sin(cone_range));
 		motion.velocity = speed * (uniform_dist(rng) * vector + vector); // random velocity
 
-		if (mode.advance) motion.angle = uniform_dist(rng) * 2 * M_PI; // random orientation
+		motion.angle = uniform_dist(rng) * 2 * M_PI; // random orientation
 
 		registry.eggTimers.emplace(egg); // determines how long egg can live
 		registry.collisionTimers.emplace(egg); // avoid colliding with other eggs on spawn
@@ -319,6 +321,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Avoid checking for collision for certain amount of time
+	for (Entity entity : registry.particleTimers.entities) {
+		// progress timer
+		ParticleTimer& counter = registry.particleTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
 	
 	if (mode.advance) {
 		for (Entity entity : registry.blowUpTimers.entities) {
@@ -385,6 +397,36 @@ void pp_collisions(Entity i, Entity j) {
 	registry.motions.get(j).velocity = -(m1 - m2) / (m1 + m2) * v2 + 2 * m1 / (m1 + m2) * v1;
 }
 
+void WorldSystem::disintegrate(Entity entity, float current_speed) {
+	Motion& motion = registry.motions.get(entity);
+	MotionFlag& motion_flag = registry.motionFlags.get(entity);
+	Mesh* mesh = registry.meshPtrs.get(entity);
+	motion_flag.follow_mouse = false;
+	motion_flag.alive = false;
+	motion.angle = M_PI / 2.f;
+	motion.velocity = vec2(0.f, -100.f * current_speed);
+	
+	vec3& color = registry.colors.get(entity);
+	color = vec3(1.f, 0.f, 0.f);
+	registry.physics_laws.get(entity).obey_gravity = true;
+	
+	Transform transform;
+	transform.translate(motion.position);
+	transform.rotate(-motion.angle);
+	transform.scale(motion.scale);
+
+	
+	for (uint j = 0; j < mesh->vertices.size(); j++) {
+		float probability = uniform_dist(rng);
+		float point_size = 20.f * uniform_dist(rng) + 10.f;
+		if (probability > 0.5) continue;
+		vec3 mesh_position = transform.mat *
+			vec3(mesh->vertices[j].position.x, mesh->vertices[j].position.y, 1.f);
+		createParticle(vec2(mesh_position), { point_size, point_size });
+	}
+	registry.renderRequests.remove(entity);
+}
+
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	GameState mode;
@@ -408,16 +450,9 @@ void WorldSystem::handle_collisions() {
 							// Scream, reset timer, and make the chicken sink
 							registry.deathTimers.emplace(entity);
 							Mix_PlayChannel(-1, chicken_dead_sound, 0);
+							disintegrate(entity, current_speed);
 
 							// !!! TODO A1: change the chicken orientation and color on death
-							vec3& color = registry.colors.get(entity);
-							Motion& motion = registry.motions.get(entity);
-							MotionFlag& motion_flag = registry.motionFlags.get(entity);
-							color = vec3(1.f, 0.f, 0.f);
-							motion_flag.follow_mouse = false;
-							motion_flag.alive = false;
-							motion.angle = M_PI / 2.f;
-							motion.velocity = vec2(0.f, 100.f * current_speed);
 						}
 						break;
 					// does not die from Player's own projectiles
@@ -432,7 +467,6 @@ void WorldSystem::handle_collisions() {
 					registry.remove_all_components_of(entity_other);
 					Mix_PlayChannel(-1, chicken_eat_sound, 0);
 					++points;
-
 					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the chicken entity by modifying the ECS registry
 					registry.lightUpTimers.emplace(entity);
 					LightUp& light_up = registry.lightUps.get(entity);
