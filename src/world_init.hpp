@@ -17,7 +17,9 @@ const float STONE_BB_WIDTH = 0.6f * 100.f;
 const float STONE_BB_HEIGHT = 0.6f * 100.f;
 // Masses (in grams)
 const float EAGLE_MASS = 3000;
-const float EGG_MASS = 50;
+const float EGG_MASS = 100;
+const float PARTICLE_MASS = 1;
+const float CHICKEN_MASS = 1000;
 
 // the player
 Entity createChicken(RenderSystem* renderer, vec2 pos);
@@ -29,6 +31,8 @@ Entity createEagle(RenderSystem* renderer, vec2 position);
 Entity createLine(vec2 position, vec2 size);
 // a egg
 Entity createEgg(vec2 pos, vec2 size);
+// a particle
+Entity createParticle(vec2 pos, vec2 size);
 // a vortex
 Entity createVortex(RenderSystem* renderer, vec2 pos);
 // a stone

@@ -18,6 +18,7 @@ public:
 	ComponentContainer<BlowUpTimer> blowUpTimers;
 	ComponentContainer<EggTimer> eggTimers;
 	ComponentContainer<CollisionTimer> collisionTimers;
+	ComponentContainer<ParticleTimer> particleTimers;
 	// Motions/Collisions/Physics
 	ComponentContainer<Motion> motions;
 	ComponentContainer<MotionFlag> motionFlags;
@@ -70,6 +71,7 @@ public:
 		registry_list.push_back(&collisionTimers);
 		registry_list.push_back(&physics_laws);
 		registry_list.push_back(&depths);
+		registry_list.push_back(&particleTimers);
 	}
 
 	void clear_all_components() {

@@ -128,6 +128,7 @@ struct LightUpTimer {
 	float counter_ms = 500;
 };
 
+// A timer that will be associated to blow up
 struct BlowUpTimer 
 {
 	float counter_ms = 300;
@@ -139,9 +140,16 @@ struct EggTimer
 	float counter_ms = 1000;
 };
 
+// A timer that will be associated to collision
 struct CollisionTimer
 {
-	float counter_ms = 300;
+	float counter_ms = 50;
+};
+
+// A timer that will be associated to particle
+struct ParticleTimer
+{
+	float counter_ms = 1500;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
@@ -216,7 +224,8 @@ enum class GEOMETRY_BUFFER_ID {
 	EGG = SPRITE + 1,
 	DEBUG_LINE = EGG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	PARTICLE = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = PARTICLE + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

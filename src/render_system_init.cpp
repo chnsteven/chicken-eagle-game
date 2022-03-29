@@ -189,6 +189,30 @@ void RenderSystem::initializeGlGeometryBuffers()
 	meshes[geom_index].vertex_indices = egg_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::EGG, meshes[geom_index].vertices, meshes[geom_index].vertex_indices);
 
+	////////////////////////
+	// Initialize egg
+	std::vector<ColoredVertex> particle_vertices;
+	std::vector<uint16_t> particle_indices;
+
+	for (int i = 0; i < NUM_TRIANGLES; i++) {
+		const float t = float(i) * M_PI * 2.f / float(NUM_TRIANGLES - 1);
+		particle_vertices.push_back({});
+		particle_vertices.back().position = { 0.5 * cos(t), 0.5 * sin(t), z };
+		particle_vertices.back().color = { 0.5, 0.5, 0.5 };
+	}
+	particle_vertices.push_back({});
+	particle_vertices.back().position = { 0, 0, 0 };
+	particle_vertices.back().color = { 0, 0, 0 };
+	for (int i = 0; i < NUM_TRIANGLES; i++) {
+		particle_indices.push_back((uint16_t)i);
+		particle_indices.push_back((uint16_t)((i + 1) % NUM_TRIANGLES));
+		particle_indices.push_back((uint16_t)NUM_TRIANGLES);
+	}
+	int geom_index_particle = (int)GEOMETRY_BUFFER_ID::PARTICLE;
+	meshes[geom_index_particle].vertices = particle_vertices;
+	meshes[geom_index_particle].vertex_indices = particle_indices;
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::PARTICLE, meshes[geom_index_particle].vertices, meshes[geom_index_particle].vertex_indices);
+
 	//////////////////////////////////
 	// Initialize debug line
 	std::vector<ColoredVertex> line_vertices;

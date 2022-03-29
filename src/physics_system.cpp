@@ -27,6 +27,7 @@ vec2 get_bounding_box(const Motion& motion)
 //	return false;
 //}
 
+// AABB collision detection
 bool collides(const Motion& motion1, const Motion& motion2)
 {
 	vec2 a_bb = get_bounding_box(motion1) / 2.f;
@@ -36,6 +37,17 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	vec2 a_hi = vec2(motion1.position.x + a_bb.x, motion1.position.y - a_bb.y);
 	vec2 b_hi = vec2(motion2.position.x + b_bb.x, motion2.position.y - b_bb.y);
 	return (a_lo.x <= b_hi.x) && (a_lo.y >= b_hi.y) && (a_hi.x >= b_lo.x) && (a_hi.y <= b_lo.y);
+}
+
+// A more precise collision detection on Entity egg
+bool detailed_check(const Motion& motion1, const Motion& motion2) {
+	vec2 a_bb = get_bounding_box(motion1) / 2.f;
+	float a_radius = max(a_bb.x, a_bb.y);
+	vec2 b_bb = get_bounding_box(motion2) / 2.f;
+	float b_radius = max(b_bb.x, b_bb.y);
+	vec2 diff = abs(motion1.position - motion2.position);
+	float dist = dot(diff, diff);
+	return dist <= a_radius + b_radius;
 }
 
 void PhysicsSystem::debug() {
@@ -141,6 +153,13 @@ void PhysicsSystem::step(float elapsed_ms)
 			{
 				
 				Entity entity_j = motion_container.entities[j];
+				if (registry.deadlys.has(entity_i) && registry.deadlys.has(entity_j)) {
+					if (registry.deadlys.get(entity_i).type == DEADLY_TYPE::EGG &&
+						registry.deadlys.get(entity_j).type == DEADLY_TYPE::EGG) {
+						detailed_check(motion_i, motion_j);
+					}
+				}
+				
 				// Create a collisions event
 				// We are abusing the ECS system a bit in that we potentially insert muliple collisions for the same entity
 				registry.collisions.emplace_with_duplicates(entity_i, entity_j);
