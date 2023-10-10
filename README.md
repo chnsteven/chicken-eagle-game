@@ -1,8 +1,3 @@
-## Assignment 1
-### CWL: chsteven
-### Name: Steven Chen
-### Student number: 82507526
-
 ## Creative part
 * 1. Summary:
 	* complex behavior of a single eagle
