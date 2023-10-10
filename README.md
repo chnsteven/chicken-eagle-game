@@ -1,8 +1,3 @@
-## Assignment 1
-### CWL: chsteven
-### Name: Steven Chen
-### Student number: 82507526
-
 ## Creative part
 * 1. Summary:
 	* Added two new assets along with all provided assets
