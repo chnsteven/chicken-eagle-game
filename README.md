@@ -1,8 +1,3 @@
-## Assignment 3
-### CWL: chsteven
-### Name: Steven Chen
-### Student number: 82507526
-
 Basic features:
 Changed `SUPER APPROXIMATE` to AABB collision detection.
 
